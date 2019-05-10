@@ -1,0 +1,72 @@
+properties-configuration:
+  director_configuration:
+    ntp_servers_string: us.pool.ntp.org
+  iaas_configuration:
+    subscription_id: {{.subscription_id}}
+    tenant_id: {{.tenant_id}}
+    client_id: {{.client_id}}
+    client_secret: {{.client_secret}}
+    resource_group_name: {{.pcf_resource_group_name}}
+    bosh_storage_account_name: {{.bosh_root_storage_account}}
+    ssh_public_key: {{.ops_manager_ssh_public_key}}
+    ssh_private_key: {{toJson .ops_manager_ssh_private_key}}
+{{if index . "terraforming_ca_cert"}}
+  security_configuration:
+    trusted_certificates: |
+{{indent 6 .terraforming_ca_cert}}
+{{end}}
+network-assignment:
+  singleton_availability_zone:
+    name: zone-1
+  network:
+    name: {{.infrastructure_subnet_name}}
+networks-configuration:
+  icmp_checks_enabled: false
+  networks:
+  - name: {{.infrastructure_subnet_name}}
+    subnets:
+    - cidr: {{.infrastructure_subnet_cidr}}
+      dns: 168.63.129.16
+      gateway: {{.infrastructure_subnet_gateway}}
+      iaas_identifier: {{.network_name}}/{{.infrastructure_subnet_name}}
+      reserved_ip_ranges: {{cidrhost .infrastructure_subnet_cidr 0}}-{{cidrhost .infrastructure_subnet_cidr 5}}
+{{if index . "pas_subnet_cidr"}}
+  - name: {{.pas_subnet_name}}
+    subnets:
+    - cidr: {{.pas_subnet_cidr}}
+      dns: 168.63.129.16
+      gateway: {{.pas_subnet_gateway}}
+      iaas_identifier: {{.network_name}}/{{.pas_subnet_name}}
+      reserved_ip_ranges: {{cidrhost .pas_subnet_cidr 0}}-{{cidrhost .pas_subnet_cidr 5}}
+{{end}}
+{{if index . "pks_subnet_cidr"}}
+  - name: {{.pks_subnet_name}}
+    subnets:
+    - cidr: {{.pks_subnet_cidr}}
+      dns: 168.63.129.16
+      gateway: {{.pks_subnet_gateway}}
+      iaas_identifier: {{.network_name}}/{{.pks_subnet_name}}
+      reserved_ip_ranges: {{cidrhost .pks_subnet_cidr 0}}-{{cidrhost .pks_subnet_cidr 5}}
+{{end}}
+{{if index . "services_subnet_cidr"}}
+  - name: {{.services_subnet_name}}
+    subnets:
+    - cidr: {{.services_subnet_cidr}}
+      dns: 168.63.129.16
+      gateway: {{.services_subnet_gateway}}
+      iaas_identifier: {{.network_name}}/{{.services_subnet_name}}
+      reserved_ip_ranges: {{cidrhost .services_subnet_cidr 0}}-{{cidrhost .services_subnet_cidr 5}}
+{{end}}
+{{if index . "control_plane_subnet_cidr"}}
+  - name: {{.control_plane_subnet_name}}
+    subnets:
+    - cidr: {{.control_plane_subnet_cidr}}
+      dns: 168.63.129.16
+      gateway: {{.control_plane_subnet_gateway}}
+      iaas_identifier: {{.network_name}}/{{.control_plane_subnet_name}}
+      reserved_ip_ranges: {{cidrhost .control_plane_subnet_cidr 0}}-{{cidrhost .control_plane_subnet_cidr 5}}
+{{end}}
+resource-configuration:
+  compilation:
+    instance_type:
+      id: automatic
