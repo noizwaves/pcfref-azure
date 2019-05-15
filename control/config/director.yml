@@ -1,0 +1,93 @@
+network-assignment:
+  network:
+    name: control-plane
+  other_availability_zones:
+  - name: "null"
+  singleton_availability_zone:
+    name: "null"
+networks-configuration:
+  icmp_checks_enabled: false
+  networks:
+  - name: control-plane
+    subnets:
+    - iaas_identifier: control-virtual-network/control-plane-subnet
+      cidr: 10.0.10.0/28
+      dns: 168.63.129.16
+      gateway: 10.0.10.1
+      reserved_ip_ranges: 10.0.10.1-10.0.10.9
+      availability_zone_names:
+      - "null"
+  - name: infrastructure
+    subnets:
+    - iaas_identifier: control-virtual-network/control-infrastructure-subnet
+      cidr: 10.0.8.0/28
+      dns: 168.63.129.16
+      gateway: 10.0.8.1
+      reserved_ip_ranges: 10.0.8.1-10.0.8.9
+      availability_zone_names:
+      - "null"
+properties-configuration:
+  director_configuration:
+    allow_legacy_agents: true
+    blobstore_type: local
+    bosh_recreate_on_next_deploy: false
+    bosh_recreate_persistent_disks_on_next_deploy: false
+    database_type: internal
+    director_worker_count: 5
+    encryption:
+      keys: []
+      providers: []
+    hm_emailer_options:
+      enabled: false
+    hm_pager_duty_options:
+      enabled: false
+    identification_tags: {}
+    keep_unreachable_vms: false
+    local_blobstore_options:
+      tls_enabled: true
+    ntp_servers_string: time.nist.gov
+    post_deploy_enabled: true
+    resurrector_enabled: true
+    retry_bosh_deploys: true
+  dns_configuration:
+    excluded_recursors: []
+    handlers: []
+  iaas_configuration:
+    additional_cloud_properties: {}
+    bosh_storage_account_name: 1t83ccbjfsnyvy9bc6eg
+    client_id: ((client_id))
+    client_secret: ((client_secret))
+    cloud_storage_type: managed_disks
+    default_security_group: control-bosh-deployed-vms-security-group
+    environment: AzureCloud
+    guid: 77396a8df6d1fd48967e
+    name: default
+    resource_group_name: control
+    ssh_public_key: ((ssh_public_key))
+    ssh_private_key: ((ssh_private_key))
+    storage_account_type: Premium_LRS
+    subscription_id: ((subscription_id))
+    tenant_id: ((tenant_id))
+  security_configuration:
+    generate_vm_passwords: true
+    opsmanager_root_ca_trusted_certs: false
+  syslog_configuration:
+    enabled: false
+resource-configuration:
+  compilation:
+    instances: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+  director:
+    instances: automatic
+    persistent_disk:
+      size_mb: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+vmextensions-configuration:
+- name: control-plane-lb-cloud-properties
+  cloud_properties:
+    security_group: control-plane-security-group
+    load_balancer: control-lb

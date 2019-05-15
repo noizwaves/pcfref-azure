@@ -1,4 +1,5 @@
 .envrc
+opsman.pem
 
 terraform.state
 .terraform/

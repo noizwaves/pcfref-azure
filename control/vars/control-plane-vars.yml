@@ -1,0 +1,6 @@
+external_url: https://plane.control.azure.63r53rk54v0r.com
+persistent_disk_type: 1048576
+network_name: control-plane
+azs: ["null"]
+vm_type: Standard_F4s
+wildcard_domain: plane.control.azure.63r53rk54v0r.com

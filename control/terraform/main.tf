@@ -13,7 +13,7 @@ terraform {
 }
 
 module "infra" {
-  source = "../modules/infra"
+  source = "../../terraforming-azure/modules/infra"
 
   env_name                          = "${var.env_name}"
   location                          = "${var.location}"
@@ -24,7 +24,7 @@ module "infra" {
 }
 
 module "ops_manager" {
-  source = "../modules/ops_manager"
+  source = "../../terraforming-azure/modules/ops_manager"
 
   env_name = "${var.env_name}"
   location = "${var.location}"
@@ -42,7 +42,7 @@ module "ops_manager" {
 }
 
 module "control_plane" {
-  source = "../modules/control_plane"
+  source = "../../terraforming-azure/modules/control_plane"
 
   resource_group_name = "${module.infra.resource_group_name}"
   env_name            = "${var.env_name}"
