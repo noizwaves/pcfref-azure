@@ -3,7 +3,7 @@ product-properties:
   .cloud_controller.allow_app_ssh_access:
     value: true
   .cloud_controller.apps_domain:
-    value: apps.nonprod.azure.63r53rk54v0r.com
+    value: apps.nonprod.azure.pcfref.com
   .cloud_controller.default_app_memory:
     value: 1024
   .cloud_controller.default_app_ssh_access:
@@ -27,7 +27,7 @@ product-properties:
   .cloud_controller.staging_timeout_in_seconds:
     value: 900
   .cloud_controller.system_domain:
-    value: sys.nonprod.azure.63r53rk54v0r.com
+    value: sys.nonprod.azure.pcfref.com
   .diego_brain.starting_container_count_maximum:
     value: 200
   .doppler.message_drain_buffer_size:
