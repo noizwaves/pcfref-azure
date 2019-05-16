@@ -1,6 +1,6 @@
 network-assignment:
   network:
-    name: control-plane
+    name: infrastructure
   other_availability_zones:
   - name: "null"
   singleton_availability_zone:
