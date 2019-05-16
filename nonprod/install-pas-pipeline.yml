@@ -20,7 +20,7 @@ resources:
     access_key_id: ((s3.access_key_id))
     bucket: ((s3.buckets.pivnet_products))
     endpoint: ((s3.endpoint))
-    secret_access_key: ((s3.secret_access_key))
+    secret_access_key: ((s3_secret_access_key))
     regexp: platform-automation-tasks-(.*).zip
 
 - name: platform-automation-image
@@ -29,20 +29,20 @@ resources:
     access_key_id: ((s3.access_key_id))
     bucket: ((s3.buckets.pivnet_products))
     endpoint: ((s3.endpoint))
-    secret_access_key: ((s3.secret_access_key))
+    secret_access_key: ((s3_secret_access_key))
     regexp: platform-automation-image-(.*).tgz
 
 - name: configuration
   type: git
   source:
-    private_key: ((configuration.private_key))
+    private_key: ((configuration_private_key))
     uri: ((configuration.uri))
     branch: ((configuration.branch))
 
 - name: variable
   type: git
   source:
-    private_key: ((configuration.private_key))
+    private_key: ((configuration_private_key))
     uri: ((configuration.uri))
     branch: ((configuration.branch))
 
