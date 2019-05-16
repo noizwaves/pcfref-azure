@@ -11,8 +11,6 @@ stemcells:
   version: latest
 
 variables:
-- name: minio_accesskey
-  type: password
 - name: minio_secretkey
   type: password
 
@@ -27,7 +25,7 @@ instance_groups:
     - name: minio-server
     properties:
       credential:
-        accesskey: ((minio_accesskey))
+        accesskey: admin
         secretkey: ((minio_secretkey))
       port: 9000
   networks:
