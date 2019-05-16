@@ -1,0 +1,43 @@
+---
+name: minio
+
+releases:
+- name: minio
+  version: latest
+
+stemcells:
+- alias: default
+  os: ubuntu-xenial
+  version: latest
+
+variables:
+- name: minio_accesskey
+  type: password
+- name: minio_secretkey
+  type: password
+
+instance_groups:
+- name: minio
+  azs: ["null"]
+  instances: 1
+  jobs:
+  - name: minio-server
+    release: minio
+    templates:
+    - name: minio-server
+    properties:
+      credential:
+        accesskey: ((minio_accesskey))
+        secretkey: ((minio_secretkey))
+      port: 9000
+  networks:
+  - name: control-plane
+  vm_type: Standard_F1s
+  persistent_disk_type: 102400
+  stemcell: default
+
+update:
+  canaries: 1
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
+  max_in_flight: 1
