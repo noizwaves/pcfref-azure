@@ -9,5 +9,7 @@ terraform.tfstate.backup
 
 assets
 
+credhub-secrets.yml
+pipeline-secrets.yml
 control/vars/
 nonprod/vars/
