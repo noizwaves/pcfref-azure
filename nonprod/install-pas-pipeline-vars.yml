@@ -1,0 +1,12 @@
+configuration:
+  uri: git@github.com:noizwaves/pcf-azure-63r53rk54v0r.git
+  branch: master
+
+s3:
+  access_key_id: admin
+  endpoint: http://10.0.10.13:9000
+  buckets:
+    pivnet_products: products
+
+credhub-server: https://plane.control.azure.pcfref.com:8844
+credhub-client: credhub_admin_client
