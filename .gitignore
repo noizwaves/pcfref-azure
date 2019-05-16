@@ -6,3 +6,8 @@ terraform.state
 plan
 terraform.tfstate
 terraform.tfstate.backup
+
+assets
+
+control/vars/
+nonprod/vars/
