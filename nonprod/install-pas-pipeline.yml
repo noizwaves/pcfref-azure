@@ -114,3 +114,38 @@ jobs:
         env: variable
       params:
         ENV_FILE: nonprod/vars/env.yml
+
+- name: delete-foundation
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: configuration
+      - get: variable
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert))
+        PREFIX: '/foundations/nonprod'
+        INTERPOLATION_PATH: "nonprod/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
+    - task: delete-installation
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/delete-installation.yml
+      input_mapping:
+        env: variable
+      params:
+        ENV_FILE: nonprod/vars/env.yml
