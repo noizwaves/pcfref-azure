@@ -35,14 +35,14 @@ resources:
 - name: configuration
   type: git
   source:
-    private_key: ((configuration_private_key))
+    private_key: ((configuration_private_key.private_key))
     uri: ((configuration.uri))
     branch: ((configuration.branch))
 
 - name: variable
   type: git
   source:
-    private_key: ((configuration_private_key))
+    private_key: ((configuration_private_key.private_key))
     uri: ((configuration.uri))
     branch: ((configuration.branch))
 
@@ -79,7 +79,7 @@ jobs:
         CREDHUB_CLIENT: ((credhub-client))
         CREDHUB_SECRET: ((credhub-secret))
         CREDHUB_SERVER: ((credhub-server))
-        CREDHUB_CA_CERT: ((credhub-ca-cert))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: '/foundations/nonprod'
         INTERPOLATION_PATH: "nonprod/vars"
       input_mapping:
@@ -135,7 +135,7 @@ jobs:
         CREDHUB_CLIENT: ((credhub-client))
         CREDHUB_SECRET: ((credhub-secret))
         CREDHUB_SERVER: ((credhub-server))
-        CREDHUB_CA_CERT: ((credhub-ca-cert))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: '/foundations/nonprod'
         INTERPOLATION_PATH: "nonprod/vars"
       input_mapping:
