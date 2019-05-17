@@ -2,5 +2,5 @@ external_url: https://plane.control.azure.pcfref.com
 persistent_disk_type: 1048576
 network_name: control-plane
 azs: ["null"]
-vm_type: Standard_F4s
+vm_type: Standard_F2s
 wildcard_domain: plane.control.azure.pcfref.com
