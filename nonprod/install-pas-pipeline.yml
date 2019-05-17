@@ -46,6 +46,17 @@ resources:
     uri: ((configuration.uri))
     branch: ((configuration.branch))
 
+groups:
+- name: fetch
+  jobs:
+  - fetch-platform-automation
+- name: install
+  jobs:
+  - install-opsman
+- name: delete
+  jobs:
+  - delete-foundation
+
 jobs:
 - name: fetch-platform-automation
   plan:
