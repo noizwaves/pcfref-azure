@@ -1,0 +1,10 @@
+credhub_encryption_password: ((cf_credhub_encryption_password))
+
+blobstore_azure_account_name: nxk097pohgliwj0xt1lf
+blobstore_azure_access_key: ((cf_blobstore_azure_access_key))
+
+poe_ssl_certs_cert_pem: ((cf_poe_ssl_cert.certificate))
+poe_ssl_certs_private_key_pem: ((cf_poe_ssl_cert.private_key))
+
+uaa_certs_cert_pem: ((cf_uaa_cert.certificate))
+uaa_certs_private_key_pem: ((cf_uaa_cert.private_key))
