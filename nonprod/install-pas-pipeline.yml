@@ -32,6 +32,24 @@ resources:
     secret_access_key: ((s3_secret_access_key))
     regexp: platform-automation-image-(.*).tgz
 
+- name: pas-stemcell
+  type: s3
+  source:
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3_secret_access_key))
+    endpoint: ((s3.endpoint))
+    bucket: ((s3.buckets.pivnet_products))
+    regexp: pas-stemcell/bosh-stemcell-(.*).tgz
+
+- name: pas-product
+  type: s3
+  source:
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3_secret_access_key))
+    endpoint: ((s3.endpoint))
+    bucket: ((s3.buckets.pivnet_products))
+    regexp: cf-(.*).pivotal
+
 - name: configuration
   type: git
   source:
@@ -50,9 +68,13 @@ groups:
 - name: fetch
   jobs:
   - fetch-platform-automation
+  - fetch-pas
 - name: install
   jobs:
   - install-opsman
+  - upload-and-stage-pas
+  - upload-pas-stemcell
+  - install-pas
 - name: delete
   jobs:
   - delete-foundation
@@ -69,6 +91,50 @@ jobs:
     - put: platform-automation-image
       params:
         file: platform-automation-pivnet/*image*.tgz
+
+- name: fetch-pas
+  plan:
+  - aggregate:
+    # - get: daily
+    #   trigger: true
+    - get: platform-automation-image
+      params:
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: configuration
+    - get: variable
+  - task: credhub-interpolate
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/credhub-interpolate.yml
+    params:
+      CREDHUB_CLIENT: ((credhub-client))
+      CREDHUB_SECRET: ((credhub-secret))
+      CREDHUB_SERVER: ((credhub-server))
+      CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+      PREFIX: '/foundations/nonprod'
+      INTERPOLATION_PATH: "nonprod/product-configs"
+    input_mapping:
+      files: variable
+    output_mapping:
+      interpolated-files: variable
+  - task: download-pas-product-and-stemcell
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/download-product.yml
+    params:
+      CONFIG_FILE: nonprod/product-configs/pas.yml
+    input_mapping:
+      config: variable
+    output_mapping:
+      downloaded-stemcell: pas-stemcell
+  - aggregate:
+    - put: pas-product
+      params:
+        file: downloaded-product/*.pivotal
+    - put: pas-stemcell
+      params:
+        file: pas-stemcell/*.tgz
 
 - name: install-opsman
   serial: true
@@ -126,7 +192,7 @@ jobs:
       params:
         ENV_FILE: nonprod/vars/env.yml
 
-- name: install-pas
+- name: upload-and-stage-pas
   serial: true
   serial_groups: [ install ]
   plan:
@@ -137,6 +203,53 @@ jobs:
       - get: platform-automation-tasks
         params:
           unpack: true
+      - get: variable
+      - get: configuration
+      - get: pas-product
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+        PREFIX: '/foundations/nonprod'
+        INTERPOLATION_PATH: "nonprod/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
+    - task: upload-pas
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/upload-product.yml
+      input_mapping:
+        product: pas-product
+        env: variable
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+    - task: stage-pas
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/stage-product.yml
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+      input_mapping:
+        product: pas-product
+        env: variable
+
+- name: upload-pas-stemcell
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: pas-stemcell
+        # trigger: true
       - get: configuration
       - get: variable
     - task: credhub-interpolate
@@ -153,14 +266,44 @@ jobs:
         files: variable
       output_mapping:
         interpolated-files: variable
-    # - task: stage-pas
-    #   image: platform-automation-image
-    #   file: platform-automation-tasks/tasks/stage-product.yml
-    #   params:
-    #     ENV_FILE: nonprod/vars/env.yml
-    #   input_mapping:
-    #     product: pas-product
-    #     env: variable
+    - task: upload-pas-stemcell
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/upload-stemcell.yml
+      input_mapping:
+        env: variable
+        stemcell: pas-stemcell
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+
+- name: install-pas
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: configuration
+        # passed:
+          # - upload-and-stage-pas
+      - get: variable
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+        PREFIX: '/foundations/nonprod'
+        INTERPOLATION_PATH: "nonprod/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
     - task: configure-pas
       image: platform-automation-image
       file: platform-automation-tasks/tasks/configure-product.yml

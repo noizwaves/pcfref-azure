@@ -30,7 +30,7 @@ instance_groups:
       port: 9000
   networks:
   - name: control-plane
-  vm_type: Standard_F1s
+  vm_type: Standard_F4s
   persistent_disk_type: 102400
   stemcell: default
 
