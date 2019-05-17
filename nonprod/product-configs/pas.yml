@@ -1,0 +1,6 @@
+pivnet-api-token: ((pivnet_token))
+pivnet-file-glob: "*cf*.pivotal"
+pivnet-product-slug: elastic-runtime
+# product-version-regex: ^2\.5\.0\-beta.*$
+product-version: 2.4.0
+stemcell-iaas: azure
