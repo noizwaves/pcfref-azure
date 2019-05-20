@@ -16,7 +16,7 @@ variables:
 
 instance_groups:
 - name: minio
-  azs: ["null"]
+  azs: ((azs))
   instances: 1
   jobs:
   - name: minio-server
@@ -29,7 +29,7 @@ instance_groups:
         secretkey: ((minio_secretkey))
       port: 9000
   networks:
-  - name: control-plane
+  - name: ((network_name))
   vm_type: ((vm_type))
   persistent_disk_type: ((persistent_disk_type))
   stemcell: default
