@@ -7,9 +7,8 @@ plan
 terraform.tfstate
 terraform.tfstate.backup
 
-assets
-
 credhub-secrets.yml
 pipeline-secrets.yml
 control/vars/
+control/control-plane/
 nonprod/vars/

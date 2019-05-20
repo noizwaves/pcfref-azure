@@ -1,0 +1,3 @@
+minio_accesskey: admin
+vm_type: Standard_F4s
+persistent_disk_type: 102400  # 100gb

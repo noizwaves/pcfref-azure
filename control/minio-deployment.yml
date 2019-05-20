@@ -25,13 +25,13 @@ instance_groups:
     - name: minio-server
     properties:
       credential:
-        accesskey: admin
+        accesskey: ((minio_accesskey))
         secretkey: ((minio_secretkey))
       port: 9000
   networks:
   - name: control-plane
-  vm_type: Standard_F4s
-  persistent_disk_type: 102400
+  vm_type: ((vm_type))
+  persistent_disk_type: ((persistent_disk_type))
   stemcell: default
 
 update:
