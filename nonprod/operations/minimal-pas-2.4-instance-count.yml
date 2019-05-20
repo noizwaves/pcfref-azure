@@ -1,0 +1,63 @@
+- type: replace
+  path: /resource-config/nats/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/mysql_proxy/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/mysql/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/diego_database/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/uaa/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/cloud_controller/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/router/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/clock_global/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/cloud_controller_worker/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/diego_brain/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/diego_cell/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/loggregator_trafficcontroller/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/syslog_adapter/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/syslog_scheduler/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/doppler/instances?
+  value: 1
+
+- type: replace
+  path: /resource-config/credhub/instances?
+  value: 1

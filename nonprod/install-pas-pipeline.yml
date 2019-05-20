@@ -310,6 +310,7 @@ jobs:
       params:
         CONFIG_FILE: nonprod/config/cf.yml
         VARS_FILES: vars/nonprod/vars/cf-vars.yml
+        OPS_FILES: config/nonprod/operations/minimal-pas-2.4-instance-count.yml
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
         config: configuration
