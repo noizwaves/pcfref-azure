@@ -1,4 +1,4 @@
-credhub_encryption_password: ((cf_credhub_encryption_password))
+credhub_encryption_password: ((cf_credhub_encryption_password))  # openssl rand -base64 16
 
 blobstore_azure_account_name: n2yg0ij7mokhavlv20gl  # terraform output cf_storage_account_name
 blobstore_azure_access_key: ((cf_blobstore_azure_access_key))  # terraform output cf_storage_account_access_key
