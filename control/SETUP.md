@@ -1,3 +1,9 @@
+## Step X. Update Cloud Config
+
+1. export cloud config to `cc.yml`
+1. `cat config/cloud-config-extra-vm-types.ymlsnippet >> cc.yml`
+1. update cloud config
+
 ## Step X. Deploy Control Plane
 
 ```
@@ -10,8 +16,8 @@ bosh deploy control-plane-0.0.31-rc.1.yml -d control-plane -o operations/azure-v
 1. `bosh upload-release https://bosh.io/d/github.com/minio/minio-boshrelease`
 
 1. Install `mc` on Ops Manager
-1. `export MC_HOST_controlplane=http://admin:$MINIO_SECRET_KEY@10.0.10.14:9000`
-1. `mc mb controlplane/products`
+1. `mc config host add control-plane http://10.0.10.13:9000 $STORAGE_ACCOUNT $STORAGE_ACCOUNT_KEY`
+1. `mc ls control-plane/products`
 
 ## Step X. Log into Control Plane Credhub
 

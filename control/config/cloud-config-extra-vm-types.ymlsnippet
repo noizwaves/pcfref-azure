@@ -1,0 +1,21 @@
+- cloud_properties:
+    ephemeral_disk:
+      use_root_disk: true
+    instance_type: Standard_F1s
+    root_disk:
+      size: 412672
+  name: Standard_F1s_large_disk
+- cloud_properties:
+    ephemeral_disk:
+      use_root_disk: true
+    instance_type: Standard_F2s
+    root_disk:
+      size: 412672
+  name: Standard_F2s_large_disk
+- cloud_properties:
+    ephemeral_disk:
+      use_root_disk: true
+    instance_type: Standard_F4s
+    root_disk:
+      size: 412672
+  name: Standard_F4s_large_disk
