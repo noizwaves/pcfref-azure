@@ -179,3 +179,31 @@ resource "random_string" "postgres_password" {
   length  = 16
   special = false
 }
+
+# Storage
+
+resource random_string "control_plane_storage_account_name" {
+  length  = 20
+  special = false
+  upper   = false
+}
+resource "azurerm_storage_account" "control_plane_storage_account" {
+  name                     = "${random_string.control_plane_storage_account_name.result}"
+  resource_group_name      = "${var.resource_group_name}"
+  location                 = "${var.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "${var.env_name}"
+    account_for = "bosh"
+  }
+}
+
+resource "azurerm_storage_container" "products_storage_container" {
+  name                  = "products"
+  depends_on            = ["azurerm_storage_account.control_plane_storage_account"]
+  resource_group_name   = "${var.resource_group_name}"
+  storage_account_name  = "${azurerm_storage_account.control_plane_storage_account.name}"
+  container_access_type = "private"
+}

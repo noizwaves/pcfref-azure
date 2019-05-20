@@ -29,3 +29,16 @@ output "network_name" {
 output "subnet_gateway" {
   value = "${cidrhost(var.cidr, 1)}"
 }
+
+output "storage_account_name" {
+  value = "${azurerm_storage_account.control_plane_storage_account.name}"
+}
+
+output "storage_account_key" {
+  value = "${azurerm_storage_account.control_plane_storage_account.primary_access_key}"
+  sensitive = true
+}
+
+output "products_container_name" {
+  value = "${azurerm_storage_container.products_storage_container.name}"
+}

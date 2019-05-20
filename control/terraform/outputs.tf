@@ -130,3 +130,16 @@ output "control_plane_db_username" {
 output "control_plane_domain" {
   value = "${module.control_plane.dns_name}"
 }
+
+output "control_plane_storage_account_name" {
+  value = "${module.control_plane.storage_account_name}"
+}
+
+output "control_plane_storage_account_key" {
+  value = "${module.control_plane.storage_account_key}"
+  sensitive = true
+}
+
+output "control_plane_products_container_name" {
+  value = "${module.control_plane.products_container_name}"
+}
