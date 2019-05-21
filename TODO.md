@@ -6,3 +6,6 @@
 - [Improve / Refactor] consolidate secrets in /foundations/nonprod and /concourse/main/nonprod
 - [Let's Encrypt] lets encrypt certs on control
 - Azure service broker
+- Azure specific NTP server (not time.nist.gov)
+- Automate the updating of Let's Encrypt certs from Terraform -> Credhub
+- Go through configuration of both foundations again and compare against docs
