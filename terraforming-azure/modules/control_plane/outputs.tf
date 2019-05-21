@@ -46,3 +46,7 @@ output "products_container_name" {
 output "backups_container_name" {
   value = "${azurerm_storage_container.backups_storage_container.name}"
 }
+
+output "terraform_states_container_name" {
+  value = "${azurerm_storage_container.terraform_state_storage_container.name}"
+}
