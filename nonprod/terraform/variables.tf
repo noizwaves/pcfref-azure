@@ -144,3 +144,11 @@ variable "pcf_services_subnet" {
   type    = "string"
   default = "10.0.4.0/22"
 }
+
+/*****************************
+ * Let's Encrypt *
+ *****************************/
+
+variable "contact_email" {
+  type    = "string"
+}

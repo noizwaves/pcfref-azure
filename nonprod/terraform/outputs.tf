@@ -246,3 +246,20 @@ output "infrastructure_subnets" {
 output "pas_subnets" {
   value = ["${module.pas.pas_subnet_name}"]
 }
+
+/*****************************
+ * Let's Encrypt *
+ *****************************/
+
+output "lets_encrypt_cert" {
+  value = "${acme_certificate.certificate.certificate_pem}"
+}
+
+output "lets_encrypt_privkey" {
+  sensitive = true
+  value     = "${acme_certificate.certificate.private_key_pem}"
+}
+
+output "lets_encrypt_chain" {
+  value = "${acme_certificate.certificate.issuer_pem}"
+}

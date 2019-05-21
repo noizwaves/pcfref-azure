@@ -87,3 +87,44 @@ module "isolation_segment" {
   resource_group_name = "${module.infra.resource_group_name}"
   dns_zone            = "${module.infra.dns_zone_name}"
 }
+
+/*****************************
+ * Let's Encrypt *
+ *****************************/
+
+provider "acme" {
+  server_url = "https://acme-v02.api.letsencrypt.org/directory"
+}
+
+resource "tls_private_key" "private_key" {
+  algorithm = "RSA"
+}
+
+resource "acme_registration" "reg" {
+  account_key_pem = "${tls_private_key.private_key.private_key_pem}"
+  email_address   = "${var.contact_email}"
+}
+
+resource "acme_certificate" "certificate" {
+  account_key_pem           = "${acme_registration.reg.account_key_pem}"
+  common_name               = "${var.env_name}.${var.dns_suffix}"
+  subject_alternative_names = [
+    "*.${var.env_name}.${var.dns_suffix}",
+    "*.apps.${var.env_name}.${var.dns_suffix}",
+    "*.sys.${var.env_name}.${var.dns_suffix}",
+    "*.login.sys.${var.env_name}.${var.dns_suffix}",
+    "*.uaa.sys.${var.env_name}.${var.dns_suffix}"
+  ]
+
+  dns_challenge {
+    provider = "azure"
+
+    config {
+      AZURE_CLIENT_ID = "${var.client_id}"
+      AZURE_CLIENT_SECRET = "${var.client_secret}"
+      AZURE_SUBSCRIPTION_ID = "${var.subscription_id}"
+      AZURE_TENANT_ID = "${var.tenant_id}"
+      AZURE_RESOURCE_GROUP = "${module.infra.resource_group_name}"
+    }
+  }
+}
