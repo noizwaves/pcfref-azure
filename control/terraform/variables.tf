@@ -67,3 +67,11 @@ variable "postgres_username" {
 variable "external_db" {
   default = false
 }
+
+/*****************************
+ * Let's Encrypt *
+ *****************************/
+
+variable "contact_email" {
+  type    = "string"
+}

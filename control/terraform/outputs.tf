@@ -147,3 +147,20 @@ output "control_plane_products_container_name" {
 output "control_plane_backups_container_name" {
   value = "${module.control_plane.backups_container_name}"
 }
+
+/*****************************
+ * Let's Encrypt *
+ *****************************/
+
+output "lets_encrypt_cert" {
+  value = "${acme_certificate.certificate.certificate_pem}"
+}
+
+output "lets_encrypt_privkey" {
+  sensitive = true
+  value     = "${acme_certificate.certificate.private_key_pem}"
+}
+
+output "lets_encrypt_chain" {
+  value = "${acme_certificate.certificate.issuer_pem}"
+}
