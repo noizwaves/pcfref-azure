@@ -5,6 +5,12 @@ resource_types:
     repository: pivotalcf/pivnet-resource
     tag: latest-final
 
+- name: credhub
+  type: docker-image
+  source:
+    repository: cfcommunity/credhub-resource
+    tag: v0.1.1
+
 resources:
 - name: platform-automation-pivnet
   type: pivnet
@@ -63,6 +69,15 @@ resources:
     private_key: ((configuration_private_key.private_key))
     uri: ((configuration.uri))
     branch: ((configuration.branch))
+
+- name: lets-encrypt-cert
+  type: credhub
+  source:
+    server: ((credhub-server))
+    username: ((credhub-client))
+    password: ((credhub-secret))
+    path: /foundations/nonprod/lets_encrypt_cert
+    skip_tls_validation: true
 
 - name: ops-manager-backup
   type: s3
@@ -198,6 +213,8 @@ jobs:
           unpack: true
       - get: configuration
       - get: variable
+      - get: lets-encrypt-cert
+        trigger: true
     - task: credhub-interpolate
       image: platform-automation-image
       file: platform-automation-tasks/tasks/credhub-interpolate.yml
@@ -365,6 +382,8 @@ jobs:
         # passed:
           # - upload-and-stage-pas
       - get: variable
+      - get: lets-encrypt-cert
+        trigger: true
     - task: credhub-interpolate
       image: platform-automation-image
       file: platform-automation-tasks/tasks/credhub-interpolate.yml
