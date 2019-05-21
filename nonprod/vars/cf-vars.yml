@@ -3,8 +3,8 @@ credhub_encryption_password: ((cf_credhub_encryption_password))  # openssl rand 
 blobstore_azure_account_name: n2yg0ij7mokhavlv20gl  # terraform output cf_storage_account_name
 blobstore_azure_access_key: ((cf_blobstore_azure_access_key))  # terraform output cf_storage_account_access_key
 
-poe_ssl_certs_cert_pem: ((cf_poe_ssl_cert.certificate))
-poe_ssl_certs_private_key_pem: ((cf_poe_ssl_cert.private_key))
+poe_ssl_certs_cert_pem: ((lets_encrypt_cert.certificate))
+poe_ssl_certs_private_key_pem: ((lets_encrypt_cert.private_key))
 
-uaa_certs_cert_pem: ((cf_uaa_cert.certificate))
-uaa_certs_private_key_pem: ((cf_uaa_cert.private_key))
+uaa_certs_cert_pem: ((lets_encrypt_cert.certificate))
+uaa_certs_private_key_pem: ((lets_encrypt_cert.private_key))
