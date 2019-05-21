@@ -222,6 +222,32 @@ jobs:
       params:
         ENV_FILE: nonprod/vars/env.yml
         AUTH_CONFIG_FILE: nonprod/vars/auth.yml
+    - task: configure-ssl
+      image: platform-automation-image
+      config:
+        platform: linux
+        inputs:
+        - name: env
+        params:
+          ENV_FILE: env.yml
+          CERTIFICATE_PEM:
+          PRIVATE_KEY_PEM:
+        run:
+          path: sh
+          args:
+          - -c
+          - |
+            cat /var/version && echo ""
+            set -eux
+            om --env env/"${ENV_FILE}" update-ssl-certificate \
+              --certificate-pem "${CERTIFICATE_PEM}" \
+              --private-key-pem "${PRIVATE_KEY_PEM}"
+      input_mapping:
+        env: variable
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+        CERTIFICATE_PEM: ((lets_encrypt_cert.certificate))
+        PRIVATE_KEY_PEM: ((lets_encrypt_cert.private_key))
     - task: configure-director
       image: platform-automation-image
       file: platform-automation-tasks/tasks/configure-director.yml
