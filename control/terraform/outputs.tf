@@ -143,3 +143,7 @@ output "control_plane_storage_account_key" {
 output "control_plane_products_container_name" {
   value = "${module.control_plane.products_container_name}"
 }
+
+output "control_plane_backups_container_name" {
+  value = "${module.control_plane.backups_container_name}"
+}

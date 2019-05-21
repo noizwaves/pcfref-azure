@@ -7,6 +7,7 @@ s3:
   endpoint: http://10.0.10.13:9000
   buckets:
     pivnet_products: products
+    backups: backups
 
 credhub-server: https://plane.control.azure.pcfref.com:8844
 credhub-client: credhub_admin_client

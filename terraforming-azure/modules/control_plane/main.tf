@@ -207,3 +207,11 @@ resource "azurerm_storage_container" "products_storage_container" {
   storage_account_name  = "${azurerm_storage_account.control_plane_storage_account.name}"
   container_access_type = "private"
 }
+
+resource "azurerm_storage_container" "backups_storage_container" {
+  name                  = "backups"
+  depends_on            = ["azurerm_storage_account.control_plane_storage_account"]
+  resource_group_name   = "${var.resource_group_name}"
+  storage_account_name  = "${azurerm_storage_account.control_plane_storage_account.name}"
+  container_access_type = "private"
+}

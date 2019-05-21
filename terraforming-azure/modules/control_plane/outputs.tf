@@ -42,3 +42,7 @@ output "storage_account_key" {
 output "products_container_name" {
   value = "${azurerm_storage_container.products_storage_container.name}"
 }
+
+output "backups_container_name" {
+  value = "${azurerm_storage_container.backups_storage_container.name}"
+}
