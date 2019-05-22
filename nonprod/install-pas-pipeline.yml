@@ -82,7 +82,7 @@ resources:
     server: ((credhub-server))
     username: ((credhub-client))
     password: ((credhub-secret))
-    path: /foundations/nonprod/lets_encrypt_cert
+    path: /concourse/main/nonprod/lets_encrypt_cert
     skip_tls_validation: true
 
 - name: ops-manager-backup
@@ -147,7 +147,7 @@ jobs:
       CREDHUB_SECRET: ((credhub-secret))
       CREDHUB_SERVER: ((credhub-server))
       CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-      PREFIX: '/foundations/nonprod'
+      PREFIX: '/concourse/main/nonprod'
       INTERPOLATION_PATH: "nonprod/product-configs"
     input_mapping:
       files: variable
@@ -189,7 +189,7 @@ jobs:
       CREDHUB_SECRET: ((credhub-secret))
       CREDHUB_SERVER: ((credhub-server))
       CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-      PREFIX: '/foundations/nonprod'
+      PREFIX: '/concourse/main/nonprod'
       INTERPOLATION_PATH: "nonprod/vars"
     input_mapping:
       files: variable
@@ -274,7 +274,6 @@ jobs:
 
           cd certs
           credhub set -n /concourse/main/nonprod/lets_encrypt_cert -t certificate -r "$(cat chain.pem)" -c "$(cat cert.pem)" -p "$(cat privkey.pem)"
-          credhub set -n /foundations/nonprod/lets_encrypt_cert -t certificate -r "$(cat chain.pem)" -c "$(cat cert.pem)" -p "$(cat privkey.pem)"
     input_mapping:
       certs: generated-certs
     params:
@@ -306,7 +305,7 @@ jobs:
         CREDHUB_SECRET: ((credhub-secret))
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: '/foundations/nonprod'
+        PREFIX: '/concourse/main/nonprod'
         INTERPOLATION_PATH: "nonprod/vars"
       input_mapping:
         files: variable
@@ -389,7 +388,7 @@ jobs:
         CREDHUB_SECRET: ((credhub-secret))
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: '/foundations/nonprod'
+        PREFIX: '/concourse/main/nonprod'
         INTERPOLATION_PATH: "nonprod/vars"
       input_mapping:
         files: variable
@@ -435,7 +434,7 @@ jobs:
         CREDHUB_SECRET: ((credhub-secret))
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: '/foundations/nonprod'
+        PREFIX: '/concourse/main/nonprod'
         INTERPOLATION_PATH: "nonprod/vars"
       input_mapping:
         files: variable
@@ -475,7 +474,7 @@ jobs:
         CREDHUB_SECRET: ((credhub-secret))
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: '/foundations/nonprod'
+        PREFIX: '/concourse/main/nonprod'
         INTERPOLATION_PATH: "nonprod/vars"
       input_mapping:
         files: variable
@@ -522,7 +521,7 @@ jobs:
         CREDHUB_SECRET: ((credhub-secret))
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: '/foundations/nonprod'
+        PREFIX: '/concourse/main/nonprod'
         INTERPOLATION_PATH: "nonprod/vars"
       input_mapping:
         files: variable

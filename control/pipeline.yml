@@ -50,7 +50,7 @@ resources:
     server: ((credhub-server))
     username: ((credhub-client))
     password: ((credhub-secret))
-    path: /foundations/control/lets_encrypt_cert
+    path: /concourse/main/control/lets_encrypt_cert
     skip_tls_validation: true
 
 groups:
@@ -126,7 +126,6 @@ jobs:
 
           cd certs
           credhub set -n /concourse/main/control/lets_encrypt_cert -t certificate -r "$(cat chain.pem)" -c "$(cat cert.pem)" -p "$(cat privkey.pem)"
-          credhub set -n /foundations/control/lets_encrypt_cert -t certificate -r "$(cat chain.pem)" -c "$(cat cert.pem)" -p "$(cat privkey.pem)"
     input_mapping:
       certs: generated-certs
     params:
@@ -157,7 +156,7 @@ jobs:
         CREDHUB_SECRET: ((credhub-secret))
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: '/foundations/control'
+        PREFIX: '/concourse/main/control'
         INTERPOLATION_PATH: "control/vars"
       input_mapping:
         files: variable
