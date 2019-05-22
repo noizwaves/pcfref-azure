@@ -12,6 +12,15 @@ resources:
     repository: hashicorp/terraform
     tag: 0.11.14
 
+- name: platform-automation-tasks
+  type: s3
+  source:
+    access_key_id: ((s3.access_key_id))
+    bucket: ((s3.buckets.pivnet_products))
+    endpoint: ((s3.endpoint))
+    secret_access_key: ((s3_secret_access_key))
+    regexp: platform-automation/platform-automation-tasks-(.*).zip
+
 - name: platform-automation-image
   type: s3
   source:
@@ -22,6 +31,13 @@ resources:
     regexp: platform-automation/platform-automation-image-(.*).tgz
 
 - name: configuration
+  type: git
+  source:
+    private_key: ((configuration_private_key.private_key))
+    uri: ((configuration.uri))
+    branch: ((configuration.branch))
+
+- name: variable
   type: git
   source:
     private_key: ((configuration_private_key.private_key))
@@ -41,6 +57,7 @@ groups:
 - name: install
   jobs:
   - pave-iaas
+  - configure-opsman
 
 jobs:
 - name: pave-iaas
@@ -51,7 +68,6 @@ jobs:
     - get: platform-automation-image
       params:
         unpack: true
-    - get: lets-encrypt-cert
   - task: terraform-apply
     image: terraform-image
     config:
@@ -118,3 +134,58 @@ jobs:
       CREDHUB_SECRET: ((credhub-secret))
       CREDHUB_SERVER: ((credhub-server))
       CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+
+- name: configure-opsman
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: configuration
+      - get: variable
+      - get: lets-encrypt-cert
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+        PREFIX: '/foundations/control'
+        INTERPOLATION_PATH: "control/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
+    - task: configure-ssl
+      image: platform-automation-image
+      config:
+        platform: linux
+        inputs:
+        - name: env
+        params:
+          ENV_FILE: env.yml
+          CERTIFICATE_PEM:
+          PRIVATE_KEY_PEM:
+        run:
+          path: sh
+          args:
+          - -c
+          - |
+            cat /var/version && echo ""
+            set -eux
+            om --env env/"${ENV_FILE}" update-ssl-certificate \
+              --certificate-pem "${CERTIFICATE_PEM}" \
+              --private-key-pem "${PRIVATE_KEY_PEM}"
+      input_mapping:
+        env: variable
+      params:
+        ENV_FILE: control/vars/env.yml
+        CERTIFICATE_PEM: ((lets_encrypt_cert.certificate))
+        PRIVATE_KEY_PEM: ((lets_encrypt_cert.private_key))
