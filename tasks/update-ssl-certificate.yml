@@ -12,7 +12,7 @@ run:
     - -c
     - |
     cat /var/version && echo ""
-    set -eux
+    set -euo pipefail
     om --env env/"${ENV_FILE}" update-ssl-certificate \
         --certificate-pem "${CERTIFICATE_PEM}" \
         --private-key-pem "${PRIVATE_KEY_PEM}"
