@@ -57,7 +57,7 @@ groups:
 - name: install
   jobs:
   - pave-iaas
-  - configure-opsman
+  - install-opsman
 
 jobs:
 - name: pave-iaas
@@ -134,7 +134,7 @@ jobs:
       CREDHUB_SERVER: ((credhub-server))
       CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
 
-- name: configure-opsman
+- name: install-opsman
   serial: true
   serial_groups: [ install ]
   plan:
@@ -190,3 +190,21 @@ jobs:
           ((lets_encrypt_cert.certificate))
           ((lets_encrypt_cert.ca))
         PRIVATE_KEY_PEM: ((lets_encrypt_cert.private_key))
+    - task: configure-director
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/configure-director.yml
+      input_mapping:
+        config: configuration
+        env: variable
+        vars: variable
+      params:
+        VARS_FILES: vars/control/vars/director-vars.yml
+        ENV_FILE: control/vars/env.yml
+        DIRECTOR_CONFIG_FILE: control/config/director.yml
+    - task: apply-director-changes
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/apply-director-changes.yml
+      input_mapping:
+        env: variable
+      params:
+        ENV_FILE: control/vars/env.yml
