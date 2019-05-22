@@ -1,6 +1,5 @@
 ## Backlog
 
-- [Improve / Refactor] consolidate secrets in /foundations/nonprod and /concourse/main/nonprod
 - Go through configuration of both foundations again and compare against docs
 - [Let's Encrypt] lets encrypt certs on control w/ pipelines to update
 - [Let's Encrypt] lets encrypt certs on nonprod
