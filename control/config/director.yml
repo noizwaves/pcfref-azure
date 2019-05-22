@@ -42,10 +42,10 @@ properties-configuration:
     hm_pager_duty_options:
       enabled: false
     identification_tags: {}
-    keep_unreachable_vms: false
+    keep_unreachable_vms: true
     local_blobstore_options:
       tls_enabled: true
-    ntp_servers_string: time.nist.gov
+    ntp_servers_string: time.windows.com
     post_deploy_enabled: true
     resurrector_enabled: true
     retry_bosh_deploys: true
@@ -70,7 +70,7 @@ properties-configuration:
     tenant_id: ((tenant_id))
   security_configuration:
     generate_vm_passwords: true
-    opsmanager_root_ca_trusted_certs: false
+    opsmanager_root_ca_trusted_certs: true
   syslog_configuration:
     enabled: false
 resource-configuration:

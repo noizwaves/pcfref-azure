@@ -54,8 +54,8 @@ properties-configuration:
     keep_unreachable_vms: true
     local_blobstore_options:
       tls_enabled: true
-    ntp_servers_string: time.nist.gov
-    post_deploy_enabled: false
+    ntp_servers_string: time.windows.com
+    post_deploy_enabled: true
     resurrector_enabled: true
     retry_bosh_deploys: true
   dns_configuration:
