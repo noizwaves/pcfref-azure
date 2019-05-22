@@ -1,0 +1,18 @@
+---
+platform: linux
+inputs:
+- name: env
+params:
+    ENV_FILE: env.yml
+    CERTIFICATE_PEM:
+    PRIVATE_KEY_PEM:
+run:
+    path: sh
+    args:
+    - -c
+    - |
+    cat /var/version && echo ""
+    set -eux
+    om --env env/"${ENV_FILE}" update-ssl-certificate \
+        --certificate-pem "${CERTIFICATE_PEM}" \
+        --private-key-pem "${PRIVATE_KEY_PEM}"
