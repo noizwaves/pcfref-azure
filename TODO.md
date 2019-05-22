@@ -1,6 +1,5 @@
 ## Backlog
 
-- Rename repo to `pcfref-azure`
 - Move terraform state into a pe-root controlled account/container
 - Product specific folders in `products` container
 - Automate the updating of Let's Encrypt certs from Terraform -> Credhub

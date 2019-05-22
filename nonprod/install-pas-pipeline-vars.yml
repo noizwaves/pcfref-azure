@@ -1,5 +1,5 @@
 configuration:
-  uri: git@github.com:noizwaves/pcf-azure-63r53rk54v0r.git
+  uri: git@github.com:noizwaves/pcfref-azure.git
   branch: master
 
 s3:
