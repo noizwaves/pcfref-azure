@@ -297,7 +297,7 @@ jobs:
       - get: configuration
       - get: variable
       - get: lets-encrypt-cert
-        trigger: true
+        # trigger: true
     - task: credhub-interpolate
       image: platform-automation-image
       file: platform-automation-tasks/tasks/credhub-interpolate.yml
@@ -466,7 +466,7 @@ jobs:
           # - upload-and-stage-pas
       - get: variable
       - get: lets-encrypt-cert
-        trigger: true
+        # trigger: true
     - task: credhub-interpolate
       image: platform-automation-image
       file: platform-automation-tasks/tasks/credhub-interpolate.yml

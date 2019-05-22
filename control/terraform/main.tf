@@ -10,6 +10,12 @@ provider "azurerm" {
 
 terraform {
   required_version = "< 0.12.0"
+
+  backend "azurerm" {
+    storage_account_name = "pcfrefazureacct"
+    container_name       = "terraforms"
+    key                  = "control/terraform.tfstate"
+  }
 }
 
 module "infra" {
