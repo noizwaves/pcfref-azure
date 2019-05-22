@@ -12,7 +12,7 @@ terraform {
   required_version = "< 0.12.0"
 
   backend "azurerm" {
-    storage_account_name = "8g86lgef668n3ij36xzx"
+    storage_account_name = "pcfrefazureacct"
     container_name       = "terraforms"
     key                  = "nonprod/terraform.tfstate"
   }
