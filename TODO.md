@@ -1,6 +1,5 @@
 ## Backlog
 
-- Product specific folders in `products` container
 - Automate the updating of Let's Encrypt certs from Terraform -> Credhub
 - [Improve / Refactor] consolidate secrets in /foundations/nonprod and /concourse/main/nonprod
 - one team per foundation (nonprod, control)

@@ -33,7 +33,7 @@ resources:
     bucket: ((s3.buckets.pivnet_products))
     endpoint: ((s3.endpoint))
     secret_access_key: ((s3_secret_access_key))
-    regexp: platform-automation-tasks-(.*).zip
+    regexp: platform-automation/platform-automation-tasks-(.*).zip
 
 - name: platform-automation-image
   type: s3
@@ -42,7 +42,7 @@ resources:
     bucket: ((s3.buckets.pivnet_products))
     endpoint: ((s3.endpoint))
     secret_access_key: ((s3_secret_access_key))
-    regexp: platform-automation-image-(.*).tgz
+    regexp: platform-automation/platform-automation-image-(.*).tgz
 
 - name: pas-stemcell
   type: s3
@@ -60,7 +60,7 @@ resources:
     secret_access_key: ((s3_secret_access_key))
     endpoint: ((s3.endpoint))
     bucket: ((s3.buckets.pivnet_products))
-    regexp: cf-(.*).pivotal
+    regexp: pas/cf-(.*).pivotal
 
 - name: configuration
   type: git
@@ -117,7 +117,7 @@ jobs:
 - name: fetch-platform-automation
   plan:
   - get: platform-automation-pivnet
-    trigger: true
+    # trigger: true
   - aggregate:
     - put: platform-automation-tasks
       params:
