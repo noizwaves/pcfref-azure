@@ -1,0 +1,120 @@
+resource_types:
+- name: credhub
+  type: docker-image
+  source:
+    repository: cfcommunity/credhub-resource
+    tag: v0.1.1
+
+resources:
+- name: terraform-image
+  type: docker-image
+  source:
+    repository: hashicorp/terraform
+    tag: 0.11.14
+
+- name: platform-automation-image
+  type: s3
+  source:
+    access_key_id: ((s3.access_key_id))
+    bucket: ((s3.buckets.pivnet_products))
+    endpoint: ((s3.endpoint))
+    secret_access_key: ((s3_secret_access_key))
+    regexp: platform-automation/platform-automation-image-(.*).tgz
+
+- name: configuration
+  type: git
+  source:
+    private_key: ((configuration_private_key.private_key))
+    uri: ((configuration.uri))
+    branch: ((configuration.branch))
+
+- name: lets-encrypt-cert
+  type: credhub
+  source:
+    server: ((credhub-server))
+    username: ((credhub-client))
+    password: ((credhub-secret))
+    path: /foundations/control/lets_encrypt_cert
+    skip_tls_validation: true
+
+groups:
+- name: install
+  jobs:
+  - pave-iaas
+
+jobs:
+- name: pave-iaas
+  plan:
+  - aggregate:
+    - get: configuration
+    - get: terraform-image
+    - get: platform-automation-image
+      params:
+        unpack: true
+    - get: lets-encrypt-cert
+  - task: terraform-apply
+    image: terraform-image
+    config:
+      platform: linux
+      inputs:
+      - name: configuration
+      outputs:
+      - name: generated-certs
+      params:
+        TF_VAR_subscription_id:
+        TF_VAR_tenant_id:
+        TF_VAR_client_id:
+        TF_VAR_client_secret:
+        ARM_ACCESS_KEY:
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          cd configuration/control/terraform
+          terraform init
+          terraform plan -out=plan
+          terraform apply plan
+
+          terraform output lets_encrypt_cert > ../../../generated-certs/cert.pem
+          terraform output lets_encrypt_chain > ../../../generated-certs/chain.pem
+          terraform output lets_encrypt_privkey > ../../../generated-certs/privkey.pem
+    input_mapping:
+      configuration: configuration
+    params:
+      TF_VAR_subscription_id: ((azure_subscription_id))
+      TF_VAR_tenant_id: ((azure_tenant_id))
+      TF_VAR_client_id: ((azure_client_id))
+      TF_VAR_client_secret: ((azure_client_secret))
+      ARM_ACCESS_KEY: ((pcfrefazureacct_secret_key))
+  - task: credhub-put
+    image: platform-automation-image
+    config:
+      platform: linux
+      inputs:
+      - name: certs
+      params:
+        CREDHUB_CLIENT:
+        CREDHUB_SECRET:
+        CREDHUB_SERVER:
+        CREDHUB_CA_CERT:
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          cat /var/version && echo ""
+          set -eux
+
+          credhub login
+
+          cd certs
+          credhub set -n /concourse/main/control/lets_encrypt_cert -t certificate -r "$(cat chain.pem)" -c "$(cat cert.pem)" -p "$(cat privkey.pem)"
+          credhub set -n /foundations/control/lets_encrypt_cert -t certificate -r "$(cat chain.pem)" -c "$(cat cert.pem)" -p "$(cat privkey.pem)"
+    input_mapping:
+      certs: generated-certs
+    params:
+      CREDHUB_CLIENT: ((credhub-client))
+      CREDHUB_SECRET: ((credhub-secret))
+      CREDHUB_SERVER: ((credhub-server))
+      CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
