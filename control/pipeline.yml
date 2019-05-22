@@ -156,7 +156,7 @@ jobs:
         CREDHUB_SECRET: ((credhub-secret))
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: '/concourse/main/control'
+        PREFIX: ((credhub-interpolation-prefix))
         INTERPOLATION_PATH: "control/vars"
       input_mapping:
         files: variable

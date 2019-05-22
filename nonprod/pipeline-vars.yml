@@ -11,3 +11,4 @@ s3:
 
 credhub-server: https://plane.control.azure.pcfref.com:8844
 credhub-client: credhub_admin_client
+credhub-interpolation-prefix: /concourse/main/nonprod
