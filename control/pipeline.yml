@@ -186,5 +186,7 @@ jobs:
         env: variable
       params:
         ENV_FILE: control/vars/env.yml
-        CERTIFICATE_PEM: ((lets_encrypt_cert.certificate))
+        CERTIFICATE_PEM: |
+          ((lets_encrypt_cert.certificate))
+          ((lets_encrypt_cert.ca))
         PRIVATE_KEY_PEM: ((lets_encrypt_cert.private_key))
