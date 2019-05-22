@@ -3,16 +3,16 @@ platform: linux
 inputs:
 - name: env
 params:
-    ENV_FILE: env.yml
-    CERTIFICATE_PEM:
-    PRIVATE_KEY_PEM:
+  ENV_FILE: env.yml
+  CERTIFICATE_PEM:
+  PRIVATE_KEY_PEM:
 run:
-    path: sh
-    args:
-    - -c
-    - |
+  path: sh
+  args:
+  - -c
+  - |
     cat /var/version && echo ""
-    set -euo pipefail
+    set -eu
     om --env env/"${ENV_FILE}" update-ssl-certificate \
-        --certificate-pem "${CERTIFICATE_PEM}" \
-        --private-key-pem "${PRIVATE_KEY_PEM}"
+      --certificate-pem "${CERTIFICATE_PEM}" \
+      --private-key-pem "${PRIVATE_KEY_PEM}"
