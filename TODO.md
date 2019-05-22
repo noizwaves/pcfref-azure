@@ -1,12 +1,16 @@
 ## Backlog
 
+- Rename repo to `pcfref-azure`
+- Move terraform state into a pe-root controlled account/container
+- Product specific folders in `products` container
+- Automate the updating of Let's Encrypt certs from Terraform -> Credhub
+- [Improve / Refactor] consolidate secrets in /foundations/nonprod and /concourse/main/nonprod
+- one team per foundation (nonprod, control)
+- Go through configuration of both foundations again and compare against docs
+- [Let's Encrypt] lets encrypt certs on control w/ pipelines to update
 - [Let's Encrypt] lets encrypt certs on nonprod
 - backup and restore pipelines: https://github.com/pivotal-cf/bbr-pcf-pipeline-tasks/blob/master/examples/pas-pipeline.yml
-- assign Minio a FQDN instead of a dynamic internal IP address
-- [Improve / Refactor] consolidate secrets in /foundations/nonprod and /concourse/main/nonprod
-- [Let's Encrypt] lets encrypt certs on control w/ pipelines to update
+- Create 2 more foundations, sandbox and prod
 - Azure service broker
 - Azure specific NTP server (not time.nist.gov)
-- Automate the updating of Let's Encrypt certs from Terraform -> Credhub
-- Go through configuration of both foundations again and compare against docs
 - Azure AD to auth all the things
