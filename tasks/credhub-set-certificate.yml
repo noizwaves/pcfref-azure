@@ -1,0 +1,21 @@
+---
+platform: linux
+inputs:
+- name: certs
+params:
+  CREDHUB_CLIENT:
+  CREDHUB_SECRET:
+  CREDHUB_SERVER:
+  CREDHUB_CA_CERT:
+run:
+  path: sh
+  args:
+  - -c
+  - |
+    cat /var/version && echo ""
+    set -eux
+
+    credhub login
+
+    cd certs
+    credhub set -n /concourse/main/nonprod/lets_encrypt_cert -t certificate -r "$(cat chain.pem)" -c "$(cat cert.pem)" -p "$(cat privkey.pem)"
