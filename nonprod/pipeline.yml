@@ -218,31 +218,7 @@ jobs:
     - get: lets-encrypt-cert
   - task: terraform-apply
     image: terraform-image
-    config:
-      platform: linux
-      inputs:
-      - name: configuration
-      outputs:
-      - name: generated-certs
-      params:
-        TF_VAR_subscription_id:
-        TF_VAR_tenant_id:
-        TF_VAR_client_id:
-        TF_VAR_client_secret:
-        ARM_ACCESS_KEY:
-      run:
-        path: sh
-        args:
-        - -c
-        - |
-          cd configuration/nonprod/terraform
-          terraform init
-          terraform plan -out=plan
-          terraform apply plan
-
-          terraform output lets_encrypt_cert > ../../../generated-certs/cert.pem
-          terraform output lets_encrypt_chain > ../../../generated-certs/chain.pem
-          terraform output lets_encrypt_privkey > ../../../generated-certs/privkey.pem
+    file: configuration/tasks/terraform-apply.yml
     input_mapping:
       configuration: configuration
     params:
@@ -251,6 +227,7 @@ jobs:
       TF_VAR_client_id: ((azure_client_id))
       TF_VAR_client_secret: ((azure_client_secret))
       ARM_ACCESS_KEY: ((pcfrefazureacct_secret_key))
+      TERRAFORM_CONFIG_DIR: nonprod/terraform
   - task: credhub-put
     image: platform-automation-image
     config:

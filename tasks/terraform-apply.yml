@@ -1,0 +1,26 @@
+---
+platform: linux
+inputs:
+- name: configuration
+outputs:
+- name: generated-certs
+params:
+  TF_VAR_subscription_id:
+  TF_VAR_tenant_id:
+  TF_VAR_client_id:
+  TF_VAR_client_secret:
+  ARM_ACCESS_KEY:
+  TERRAFORM_CONFIG_DIR: # relative to `configuration`
+run:
+  path: sh
+  args:
+  - -c
+  - |
+    cd configuration/${TERRAFORM_CONFIG_DIR}
+    terraform init
+    terraform plan -out=plan
+    terraform apply plan
+
+    terraform output lets_encrypt_cert > ../../../generated-certs/cert.pem
+    terraform output lets_encrypt_chain > ../../../generated-certs/chain.pem
+    terraform output lets_encrypt_privkey > ../../../generated-certs/privkey.pem
