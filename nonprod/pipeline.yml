@@ -62,6 +62,24 @@ resources:
     bucket: ((s3.buckets.pivnet_products))
     regexp: pas/cf-(.*).pivotal
 
+- name: mysql-stemcell
+  type: s3
+  source:
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3_secret_access_key))
+    endpoint: ((s3.endpoint))
+    bucket: ((s3.buckets.pivnet_products))
+    regexp: mysql-stemcell/bosh-stemcell-(.*).tgz
+
+- name: mysql-product
+  type: s3
+  source:
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3_secret_access_key))
+    endpoint: ((s3.endpoint))
+    bucket: ((s3.buckets.pivnet_products))
+    regexp: mysql/pivotal-mysql-(.*).pivotal
+
 - name: configuration
   type: git
   source:
@@ -99,6 +117,7 @@ groups:
   jobs:
   - fetch-platform-automation
   - fetch-pas
+  - fetch-mysql
 - name: install
   jobs:
   - pave-iaas
@@ -169,6 +188,50 @@ jobs:
     - put: pas-stemcell
       params:
         file: pas-stemcell/*.tgz
+
+- name: fetch-mysql
+  plan:
+  - aggregate:
+    # - get: daily
+    #   trigger: true
+    - get: platform-automation-image
+      params:
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: configuration
+    - get: variable
+  - task: credhub-interpolate
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/credhub-interpolate.yml
+    params:
+      CREDHUB_CLIENT: ((credhub-client))
+      CREDHUB_SECRET: ((credhub-secret))
+      CREDHUB_SERVER: ((credhub-server))
+      CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+      PREFIX: ((credhub-interpolation-prefix))
+      INTERPOLATION_PATH: "nonprod/product-configs"
+    input_mapping:
+      files: variable
+    output_mapping:
+      interpolated-files: variable
+  - task: download-mysql-product-and-stemcell
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/download-product.yml
+    params:
+      CONFIG_FILE: nonprod/product-configs/mysql.yml
+    input_mapping:
+      config: variable
+    output_mapping:
+      downloaded-stemcell: mysql-stemcell
+  - aggregate:
+    - put: mysql-product
+      params:
+        file: downloaded-product/*.pivotal
+    - put: mysql-stemcell
+      params:
+        file: mysql-stemcell/*.tgz
 
 - name: backup-ops-manager
   plan:
