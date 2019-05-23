@@ -16,11 +16,13 @@ run:
   args:
   - -c
   - |
+    ROOT_DIR=$PWD
     cd configuration/${TERRAFORM_CONFIG_DIR}
     terraform init
     terraform plan -out=plan
     terraform apply plan
+    cd $ROOT_DIR
 
-    terraform output lets_encrypt_cert > ../../../generated-certs/cert.pem
-    terraform output lets_encrypt_chain > ../../../generated-certs/chain.pem
-    terraform output lets_encrypt_privkey > ../../../generated-certs/privkey.pem
+    terraform output lets_encrypt_cert > generated-certs/cert.pem
+    terraform output lets_encrypt_chain > generated-certs/chain.pem
+    terraform output lets_encrypt_privkey > generated-certs/privkey.pem
