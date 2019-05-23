@@ -238,6 +238,7 @@ jobs:
       CREDHUB_SECRET: ((credhub-secret))
       CREDHUB_SERVER: ((credhub-server))
       CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+      NAME: /concourse/main/nonprod/lets_encrypt_cert
 
 - name: install-opsman
   serial: true

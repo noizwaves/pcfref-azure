@@ -7,6 +7,7 @@ params:
   CREDHUB_SECRET:
   CREDHUB_SERVER:
   CREDHUB_CA_CERT:
+  NAME:
 run:
   path: sh
   args:
@@ -17,5 +18,4 @@ run:
 
     credhub login
 
-    cd certs
-    credhub set -n /concourse/main/nonprod/lets_encrypt_cert -t certificate -r "$(cat chain.pem)" -c "$(cat cert.pem)" -p "$(cat privkey.pem)"
+    credhub set -n ${NAME} -t certificate -r "$(cat certs/chain.pem)" -c "$(cat certs/cert.pem)" -p "$(cat certs/privkey.pem)"
