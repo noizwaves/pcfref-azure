@@ -1,0 +1,4 @@
+backup_azure_account: 8g86lgef668n3ij36xzx
+backup_azure_access_key: ((s3_secret_access_key))
+backup_azure_path: nonprod/mysql
+backup_azure_container: backups
