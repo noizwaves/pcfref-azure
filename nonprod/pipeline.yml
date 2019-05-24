@@ -98,6 +98,24 @@ resources:
     bucket: ((s3.buckets.pivnet_products))
     regexp: rabbitmq/p-rabbitmq-(.*).pivotal
 
+- name: redis-stemcell
+  type: s3
+  source:
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3_secret_access_key))
+    endpoint: ((s3.endpoint))
+    bucket: ((s3.buckets.pivnet_products))
+    regexp: redis-stemcell/bosh-stemcell-(.*).tgz
+
+- name: redis-product
+  type: s3
+  source:
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3_secret_access_key))
+    endpoint: ((s3.endpoint))
+    bucket: ((s3.buckets.pivnet_products))
+    regexp: redis/p-redis-(.*).pivotal
+
 - name: configuration
   type: git
   source:
@@ -137,6 +155,7 @@ groups:
   - fetch-pas
   - fetch-mysql
   - fetch-rabbitmq
+  - fetch-redis
 - name: install
   jobs:
   - pave-iaas
@@ -150,6 +169,9 @@ groups:
   - upload-and-stage-rabbitmq
   - upload-rabbitmq-stemcell
   - install-rabbitmq
+  - upload-and-stage-redis
+  - upload-redis-stemcell
+  - install-redis
 - name: backup
   jobs:
   - backup-ops-manager
@@ -301,6 +323,50 @@ jobs:
     - put: rabbitmq-stemcell
       params:
         file: rabbitmq-stemcell/*.tgz
+
+- name: fetch-redis
+  plan:
+  - aggregate:
+    # - get: daily
+    #   trigger: true
+    - get: platform-automation-image
+      params:
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: configuration
+    - get: variable
+  - task: credhub-interpolate
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/credhub-interpolate.yml
+    params:
+      CREDHUB_CLIENT: ((credhub-client))
+      CREDHUB_SECRET: ((credhub-secret))
+      CREDHUB_SERVER: ((credhub-server))
+      CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+      PREFIX: ((credhub-interpolation-prefix))
+      INTERPOLATION_PATH: "nonprod/product-configs"
+    input_mapping:
+      files: variable
+    output_mapping:
+      interpolated-files: variable
+  - task: download-redis-product-and-stemcell
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/download-product.yml
+    params:
+      CONFIG_FILE: nonprod/product-configs/redis.yml
+    input_mapping:
+      config: variable
+    output_mapping:
+      downloaded-stemcell: redis-stemcell
+  - aggregate:
+    - put: redis-product
+      params:
+        file: downloaded-product/*.pivotal
+    - put: redis-stemcell
+      params:
+        file: redis-stemcell/*.tgz
 
 - name: backup-ops-manager
   plan:
@@ -823,6 +889,137 @@ jobs:
       file: platform-automation-tasks/tasks/configure-product.yml
       params:
         CONFIG_FILE: nonprod/config/rabbitmq.yml
+        ENV_FILE: nonprod/vars/env.yml
+      input_mapping:
+        config: configuration
+        env: variable
+        vars: variable
+    - task: apply-changes
+      image: platform-automation-image
+      file: configuration/tasks/om-apply-changes-skip-unchanged.yml
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+      input_mapping:
+        env: variable
+
+- name: upload-and-stage-redis
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: variable
+      - get: configuration
+      - get: redis-product
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+        PREFIX: ((credhub-interpolation-prefix))
+        INTERPOLATION_PATH: "nonprod/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
+    - task: upload-redis
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/upload-product.yml
+      input_mapping:
+        product: redis-product
+        env: variable
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+    - task: stage-redis
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/stage-product.yml
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+      input_mapping:
+        product: redis-product
+        env: variable
+
+- name: upload-redis-stemcell
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: redis-stemcell
+        # trigger: true
+      - get: configuration
+      - get: variable
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+        PREFIX: ((credhub-interpolation-prefix))
+        INTERPOLATION_PATH: "nonprod/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
+    - task: upload-redis-stemcell
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/upload-stemcell.yml
+      input_mapping:
+        env: variable
+        stemcell: redis-stemcell
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+
+- name: install-redis
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: configuration
+        # passed:
+          # - upload-and-stage-pas
+      - get: variable
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+        PREFIX: ((credhub-interpolation-prefix))
+        INTERPOLATION_PATH: "nonprod/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
+    - task: configure-redis
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/configure-product.yml
+      params:
+        CONFIG_FILE: nonprod/config/redis.yml
+        VARS_FILES: vars/nonprod/vars/redis-vars.yml
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
         config: configuration
