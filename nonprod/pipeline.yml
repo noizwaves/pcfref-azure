@@ -80,6 +80,24 @@ resources:
     bucket: ((s3.buckets.pivnet_products))
     regexp: mysql/pivotal-mysql-(.*).pivotal
 
+- name: rabbitmq-stemcell
+  type: s3
+  source:
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3_secret_access_key))
+    endpoint: ((s3.endpoint))
+    bucket: ((s3.buckets.pivnet_products))
+    regexp: rabbitmq-stemcell/bosh-stemcell-(.*).tgz
+
+- name: rabbitmq-product
+  type: s3
+  source:
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3_secret_access_key))
+    endpoint: ((s3.endpoint))
+    bucket: ((s3.buckets.pivnet_products))
+    regexp: rabbitmq/p-rabbitmq-(.*).pivotal
+
 - name: configuration
   type: git
   source:
@@ -118,6 +136,7 @@ groups:
   - fetch-platform-automation
   - fetch-pas
   - fetch-mysql
+  - fetch-rabbitmq
 - name: install
   jobs:
   - pave-iaas
@@ -128,6 +147,9 @@ groups:
   - upload-and-stage-mysql
   - upload-mysql-stemcell
   - install-mysql
+  - upload-and-stage-rabbitmq
+  - upload-rabbitmq-stemcell
+  - install-rabbitmq
 - name: backup
   jobs:
   - backup-ops-manager
@@ -235,6 +257,50 @@ jobs:
     - put: mysql-stemcell
       params:
         file: mysql-stemcell/*.tgz
+
+- name: fetch-rabbitmq
+  plan:
+  - aggregate:
+    # - get: daily
+    #   trigger: true
+    - get: platform-automation-image
+      params:
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: configuration
+    - get: variable
+  - task: credhub-interpolate
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/credhub-interpolate.yml
+    params:
+      CREDHUB_CLIENT: ((credhub-client))
+      CREDHUB_SECRET: ((credhub-secret))
+      CREDHUB_SERVER: ((credhub-server))
+      CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+      PREFIX: ((credhub-interpolation-prefix))
+      INTERPOLATION_PATH: "nonprod/product-configs"
+    input_mapping:
+      files: variable
+    output_mapping:
+      interpolated-files: variable
+  - task: download-rabbitmq-product-and-stemcell
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/download-product.yml
+    params:
+      CONFIG_FILE: nonprod/product-configs/rabbitmq.yml
+    input_mapping:
+      config: variable
+    output_mapping:
+      downloaded-stemcell: rabbitmq-stemcell
+  - aggregate:
+    - put: rabbitmq-product
+      params:
+        file: downloaded-product/*.pivotal
+    - put: rabbitmq-stemcell
+      params:
+        file: rabbitmq-stemcell/*.tgz
 
 - name: backup-ops-manager
   plan:
@@ -627,6 +693,136 @@ jobs:
       params:
         CONFIG_FILE: nonprod/config/mysql.yml
         VARS_FILES: vars/nonprod/vars/mysql-vars.yml
+        ENV_FILE: nonprod/vars/env.yml
+      input_mapping:
+        config: configuration
+        env: variable
+        vars: variable
+    - task: apply-changes
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/apply-changes.yml
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+      input_mapping:
+        env: variable
+
+- name: upload-and-stage-rabbitmq
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: variable
+      - get: configuration
+      - get: rabbitmq-product
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+        PREFIX: ((credhub-interpolation-prefix))
+        INTERPOLATION_PATH: "nonprod/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
+    - task: upload-rabbitmq
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/upload-product.yml
+      input_mapping:
+        product: rabbitmq-product
+        env: variable
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+    - task: stage-rabbitmq
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/stage-product.yml
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+      input_mapping:
+        product: rabbitmq-product
+        env: variable
+
+- name: upload-rabbitmq-stemcell
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: rabbitmq-stemcell
+        # trigger: true
+      - get: configuration
+      - get: variable
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+        PREFIX: ((credhub-interpolation-prefix))
+        INTERPOLATION_PATH: "nonprod/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
+    - task: upload-rabbitmq-stemcell
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/upload-stemcell.yml
+      input_mapping:
+        env: variable
+        stemcell: rabbitmq-stemcell
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+
+- name: install-rabbitmq
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: configuration
+        # passed:
+          # - upload-and-stage-pas
+      - get: variable
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+        PREFIX: ((credhub-interpolation-prefix))
+        INTERPOLATION_PATH: "nonprod/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
+    - task: configure-rabbitmq
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/configure-product.yml
+      params:
+        CONFIG_FILE: nonprod/config/rabbitmq.yml
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
         config: configuration
