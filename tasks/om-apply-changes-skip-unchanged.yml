@@ -1,0 +1,17 @@
+---
+platform: linux
+
+inputs:
+- name: env
+
+params:
+  ENV_FILE: env.yml
+
+run:
+  path: bash
+  args:
+  - "-c"
+  - |
+    cat /var/version && echo ""
+    set -eux
+    om --env env/"${ENV_FILE}" apply-changes --skip-unchanged-products
