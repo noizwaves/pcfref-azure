@@ -1,5 +1,6 @@
 ## Backlog
 
+- upgrade to Platform Automation 3.0
 - refactor nonprod pipeline
 - Automate nonprod standup (6am) and teardown (6pm)
 - cf-mgmt pipelines
