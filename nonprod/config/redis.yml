@@ -21,12 +21,18 @@ product-properties:
     value: "No"
   .properties.large_plan_selector:
     value: Plan Active
+  .properties.large_plan_selector.active.az_multi_select:
+    value: ["null"]
   .properties.medium_plan_selector:
     value: Plan Active
+  .properties.medium_plan_selector.active.az_multi_select:
+    value: ["null"]
   .properties.metrics_polling_interval:
     value: 30
   .properties.small_plan_selector:
     value: Plan Active
+  .properties.small_plan_selector.active.az_multi_select:
+    value: ["null"]
   .properties.syslog_selector:
     value: "No"
   .redis-on-demand-broker.enable_create_swap_delete:
