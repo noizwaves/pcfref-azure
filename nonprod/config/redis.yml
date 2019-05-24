@@ -1,0 +1,83 @@
+product-name: p-redis
+product-properties:
+  .cf-redis-broker.lua_scripting_enabled:
+    value: false
+  .cf-redis-broker.redis_maxmemory:
+    value: 512MB
+  .cf-redis-broker.service_instance_limit:
+    value: 5
+  .properties.backups_selector:
+    value: Azure Backups
+  .properties.backups_selector.azure.account:
+    value: ((backup_azure_account))
+  .properties.backups_selector.azure.storage_access_key:
+    value:
+      secret: ((backup_azure_access_key))
+  .properties.backups_selector.azure.path:
+    value: ((backup_azure_path))
+  .properties.backups_selector.azure.container:
+    value: backups
+  .properties.canary_org_space_selector:
+    value: "No"
+  .properties.large_plan_selector:
+    value: Plan Active
+  .properties.medium_plan_selector:
+    value: Plan Active
+  .properties.metrics_polling_interval:
+    value: 30
+  .properties.small_plan_selector:
+    value: Plan Active
+  .properties.syslog_selector:
+    value: "No"
+  .redis-on-demand-broker.enable_create_swap_delete:
+    value: false
+  .redis-on-demand-broker.maximum_parallel_upgrades:
+    value: 1
+  .redis-on-demand-broker.service_instance_limit:
+    value: 20
+  .redis-on-demand-broker.service_instance_sharing:
+    value: false
+  .redis-on-demand-broker.upgrade_canary_number:
+    value: 1
+network-properties:
+  network:
+    name: pas
+  other_availability_zones:
+  - name: "null"
+  service_network:
+    name: services
+  singleton_availability_zone:
+    name: "null"
+resource-config:
+  cf-redis-broker:
+    instances: automatic
+    persistent_disk:
+      size_mb: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+  redis-on-demand-broker:
+    instances: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+errand-config:
+  broker-deregistrar:
+    pre-delete-state: true
+  broker-registrar:
+    post-deploy-state: true
+  delete-all-service-instances-and-deregister-broker:
+    pre-delete-state: true
+  on-demand-broker-smoke-tests:
+    post-deploy-state: true
+  orphan-deployments:
+    post-deploy-state: false
+  recreate-all-service-instances:
+    post-deploy-state: false
+  register-broker:
+    post-deploy-state: true
+  smoke-tests:
+    post-deploy-state: true
+  upgrade-all-service-instances:
+    post-deploy-state: true
+
