@@ -59,6 +59,21 @@ groups:
   - pave-iaas
   - install-opsman
 
+credhub-interpolate-all-vars: &credhub-interpolate-all-vars
+  image: platform-automation-image
+  file: platform-automation-tasks/tasks/credhub-interpolate.yml
+  params:
+    CREDHUB_CLIENT: ((credhub-client))
+    CREDHUB_SECRET: ((credhub-secret))
+    CREDHUB_SERVER: ((credhub-server))
+    CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+    PREFIX: ((credhub-interpolation-prefix))
+    INTERPOLATION_PATHS: "control/vars"
+  input_mapping:
+    files: variable
+  output_mapping:
+    interpolated-files: variable
+
 jobs:
 - name: pave-iaas
   plan:
@@ -107,19 +122,7 @@ jobs:
       - get: variable
       - get: lets-encrypt-cert
     - task: credhub-interpolate
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/credhub-interpolate.yml
-      params:
-        CREDHUB_CLIENT: ((credhub-client))
-        CREDHUB_SECRET: ((credhub-secret))
-        CREDHUB_SERVER: ((credhub-server))
-        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATHS: "control/vars"
-      input_mapping:
-        files: variable
-      output_mapping:
-        interpolated-files: variable
+      <<: *credhub-interpolate-all-vars
     - task: configure-ssl
       image: platform-automation-image
       file: configuration/tasks/update-ssl-certificate.yml
