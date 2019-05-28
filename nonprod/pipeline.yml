@@ -598,13 +598,6 @@ jobs:
         config: configuration
         env: variable
         vars: variable
-    - task: apply-changes
-      image: platform-automation-image
-      file: configuration/tasks/om-apply-changes-skip-unchanged.yml
-      params:
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        env: variable
 
 - name: upload-and-stage-mysql
   serial: true
