@@ -149,6 +149,22 @@ resources:
     regexp: nonprod/ops-manager/installation-(.*).zip
 
 groups:
+- name: install
+  jobs:
+  - install-opsman
+  - upload-and-stage-pas
+  - configure-pas
+  - upload-and-stage-mysql
+  - configure-mysql
+  - upload-and-stage-rabbitmq
+  - configure-rabbitmq
+  - upload-and-stage-redis
+  - configure-redis
+  - upload-stemcells
+  - apply-product-changes
+- name: iaas
+  jobs:
+  - pave-iaas
 - name: fetch
   jobs:
   - fetch-platform-automation
@@ -156,22 +172,6 @@ groups:
   - fetch-mysql
   - fetch-rabbitmq
   - fetch-redis
-- name: install
-  jobs:
-  - pave-iaas
-  - install-opsman
-  - upload-and-stage-pas
-  - upload-pas-stemcell
-  - install-pas
-  - upload-and-stage-mysql
-  - upload-mysql-stemcell
-  - install-mysql
-  - upload-and-stage-rabbitmq
-  - upload-rabbitmq-stemcell
-  - install-rabbitmq
-  - upload-and-stage-redis
-  - upload-redis-stemcell
-  - install-redis
 - name: backup
   jobs:
   - backup-ops-manager
@@ -368,43 +368,6 @@ jobs:
       params:
         file: redis-stemcell/*.tgz
 
-- name: backup-ops-manager
-  plan:
-  - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
-    - get: configuration
-    - get: variable
-  - task: credhub-interpolate
-    image: platform-automation-image
-    file: platform-automation-tasks/tasks/credhub-interpolate.yml
-    params:
-      CREDHUB_CLIENT: ((credhub-client))
-      CREDHUB_SECRET: ((credhub-secret))
-      CREDHUB_SERVER: ((credhub-server))
-      CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-      PREFIX: ((credhub-interpolation-prefix))
-      INTERPOLATION_PATH: "nonprod/vars"
-    input_mapping:
-      files: variable
-    output_mapping:
-      interpolated-files: variable
-  - task: export-installation
-    image: platform-automation-image
-    file: platform-automation-tasks/tasks/export-installation.yml
-    input_mapping:
-      env: variable
-    params:
-      ENV_FILE: nonprod/vars/env.yml
-      INSTALLATION_FILE: installation-$timestamp.zip
-  - put: ops-manager-backup
-    params:
-      file: installation/installation-*.zip
-
 - name: pave-iaas
   plan:
   - aggregate:
@@ -507,6 +470,43 @@ jobs:
       params:
         ENV_FILE: nonprod/vars/env.yml
 
+- name: backup-ops-manager
+  plan:
+  - aggregate:
+    - get: platform-automation-image
+      params:
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: configuration
+    - get: variable
+  - task: credhub-interpolate
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/credhub-interpolate.yml
+    params:
+      CREDHUB_CLIENT: ((credhub-client))
+      CREDHUB_SECRET: ((credhub-secret))
+      CREDHUB_SERVER: ((credhub-server))
+      CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+      PREFIX: ((credhub-interpolation-prefix))
+      INTERPOLATION_PATH: "nonprod/vars"
+    input_mapping:
+      files: variable
+    output_mapping:
+      interpolated-files: variable
+  - task: export-installation
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/export-installation.yml
+    input_mapping:
+      env: variable
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+      INSTALLATION_FILE: installation-$timestamp.zip
+  - put: ops-manager-backup
+    params:
+      file: installation/installation-*.zip
+
 - name: upload-and-stage-pas
   serial: true
   serial_groups: [ install ]
@@ -515,6 +515,8 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
+        passed:
+        - install-opsman
       - get: platform-automation-tasks
         params:
           unpack: true
@@ -552,7 +554,7 @@ jobs:
         product: pas-product
         env: variable
 
-- name: upload-pas-stemcell
+- name: configure-pas
   serial: true
   serial_groups: [ install ]
   plan:
@@ -560,50 +562,13 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
+        passed:
+          - upload-and-stage-pas
       - get: platform-automation-tasks
         params:
           unpack: true
-      - get: pas-stemcell
-        # trigger: true
+      - get: pas-product
       - get: configuration
-      - get: variable
-    - task: credhub-interpolate
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/credhub-interpolate.yml
-      params:
-        CREDHUB_CLIENT: ((credhub-client))
-        CREDHUB_SECRET: ((credhub-secret))
-        CREDHUB_SERVER: ((credhub-server))
-        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
-      input_mapping:
-        files: variable
-      output_mapping:
-        interpolated-files: variable
-    - task: upload-pas-stemcell
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-stemcell.yml
-      input_mapping:
-        env: variable
-        stemcell: pas-stemcell
-      params:
-        ENV_FILE: nonprod/vars/env.yml
-
-- name: install-pas
-  serial: true
-  serial_groups: [ install ]
-  plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-        # passed:
-          # - upload-and-stage-pas
       - get: variable
       - get: lets-encrypt-cert
         # trigger: true
@@ -649,6 +614,8 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
+        passed:
+        - install-opsman
       - get: platform-automation-tasks
         params:
           unpack: true
@@ -686,45 +653,7 @@ jobs:
         product: mysql-product
         env: variable
 
-- name: upload-mysql-stemcell
-  serial: true
-  serial_groups: [ install ]
-  plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: mysql-stemcell
-        # trigger: true
-      - get: configuration
-      - get: variable
-    - task: credhub-interpolate
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/credhub-interpolate.yml
-      params:
-        CREDHUB_CLIENT: ((credhub-client))
-        CREDHUB_SECRET: ((credhub-secret))
-        CREDHUB_SERVER: ((credhub-server))
-        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
-      input_mapping:
-        files: variable
-      output_mapping:
-        interpolated-files: variable
-    - task: upload-mysql-stemcell
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-stemcell.yml
-      input_mapping:
-        env: variable
-        stemcell: mysql-stemcell
-      params:
-        ENV_FILE: nonprod/vars/env.yml
-
-- name: install-mysql
+- name: configure-mysql
   serial: true
   serial_groups: [ install ]
   plan:
@@ -736,8 +665,6 @@ jobs:
         params:
           unpack: true
       - get: configuration
-        # passed:
-          # - upload-and-stage-pas
       - get: variable
     - task: credhub-interpolate
       image: platform-automation-image
@@ -764,13 +691,6 @@ jobs:
         config: configuration
         env: variable
         vars: variable
-    - task: apply-changes
-      image: platform-automation-image
-      file: configuration/tasks/om-apply-changes-skip-unchanged.yml
-      params:
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        env: variable
 
 - name: upload-and-stage-rabbitmq
   serial: true
@@ -780,6 +700,8 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
+        passed:
+        - install-opsman
       - get: platform-automation-tasks
         params:
           unpack: true
@@ -817,7 +739,7 @@ jobs:
         product: rabbitmq-product
         env: variable
 
-- name: upload-rabbitmq-stemcell
+- name: configure-rabbitmq
   serial: true
   serial_groups: [ install ]
   plan:
@@ -825,50 +747,12 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: rabbitmq-stemcell
-        # trigger: true
-      - get: configuration
-      - get: variable
-    - task: credhub-interpolate
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/credhub-interpolate.yml
-      params:
-        CREDHUB_CLIENT: ((credhub-client))
-        CREDHUB_SECRET: ((credhub-secret))
-        CREDHUB_SERVER: ((credhub-server))
-        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
-      input_mapping:
-        files: variable
-      output_mapping:
-        interpolated-files: variable
-    - task: upload-rabbitmq-stemcell
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-stemcell.yml
-      input_mapping:
-        env: variable
-        stemcell: rabbitmq-stemcell
-      params:
-        ENV_FILE: nonprod/vars/env.yml
-
-- name: install-rabbitmq
-  serial: true
-  serial_groups: [ install ]
-  plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
+        passed:
+          - upload-and-stage-rabbitmq
       - get: platform-automation-tasks
         params:
           unpack: true
       - get: configuration
-        # passed:
-          # - upload-and-stage-pas
       - get: variable
     - task: credhub-interpolate
       image: platform-automation-image
@@ -894,13 +778,6 @@ jobs:
         config: configuration
         env: variable
         vars: variable
-    - task: apply-changes
-      image: platform-automation-image
-      file: configuration/tasks/om-apply-changes-skip-unchanged.yml
-      params:
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        env: variable
 
 - name: upload-and-stage-redis
   serial: true
@@ -910,6 +787,8 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
+        passed:
+        - install-opsman
       - get: platform-automation-tasks
         params:
           unpack: true
@@ -947,7 +826,7 @@ jobs:
         product: redis-product
         env: variable
 
-- name: upload-redis-stemcell
+- name: configure-redis
   serial: true
   serial_groups: [ install ]
   plan:
@@ -955,50 +834,12 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: redis-stemcell
-        # trigger: true
-      - get: configuration
-      - get: variable
-    - task: credhub-interpolate
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/credhub-interpolate.yml
-      params:
-        CREDHUB_CLIENT: ((credhub-client))
-        CREDHUB_SECRET: ((credhub-secret))
-        CREDHUB_SERVER: ((credhub-server))
-        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-        PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
-      input_mapping:
-        files: variable
-      output_mapping:
-        interpolated-files: variable
-    - task: upload-redis-stemcell
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-stemcell.yml
-      input_mapping:
-        env: variable
-        stemcell: redis-stemcell
-      params:
-        ENV_FILE: nonprod/vars/env.yml
-
-- name: install-redis
-  serial: true
-  serial_groups: [ install ]
-  plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
+        passed:
+        - upload-and-stage-redis
       - get: platform-automation-tasks
         params:
           unpack: true
       - get: configuration
-        # passed:
-          # - upload-and-stage-pas
       - get: variable
     - task: credhub-interpolate
       image: platform-automation-image
@@ -1025,6 +866,113 @@ jobs:
         config: configuration
         env: variable
         vars: variable
+
+- name: upload-stemcells
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+        passed:
+          - configure-pas
+          - configure-mysql
+          - configure-rabbitmq
+          - configure-redis
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: pas-stemcell
+        trigger: true
+      - get: mysql-stemcell
+        trigger: true
+      - get: rabbitmq-stemcell
+        trigger: true
+      - get: redis-stemcell
+        trigger: true
+      - get: configuration
+      - get: variable
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+        PREFIX: ((credhub-interpolation-prefix))
+        INTERPOLATION_PATH: "nonprod/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
+    - task: upload-pas-stemcell
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/upload-stemcell.yml
+      input_mapping:
+        env: variable
+        stemcell: pas-stemcell
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+    - task: upload-mysql-stemcell
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/upload-stemcell.yml
+      input_mapping:
+        env: variable
+        stemcell: mysql-stemcell
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+    - task: upload-rabbitmq-stemcell
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/upload-stemcell.yml
+      input_mapping:
+        env: variable
+        stemcell: rabbitmq-stemcell
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+    - task: upload-redis-stemcell
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/upload-stemcell.yml
+      input_mapping:
+        env: variable
+        stemcell: redis-stemcell
+      params:
+        ENV_FILE: nonprod/vars/env.yml
+
+- name: apply-product-changes
+  serial: true
+  serial_groups: [ install ]
+  plan:
+    - aggregate:
+      - get: platform-automation-image
+        params:
+          unpack: true
+        passed:
+          - upload-stemcells
+          - configure-pas
+          - configure-mysql
+          - configure-rabbitmq
+          - configure-redis
+      - get: platform-automation-tasks
+        params:
+          unpack: true
+      - get: configuration
+      - get: variable
+    - task: credhub-interpolate
+      image: platform-automation-image
+      file: platform-automation-tasks/tasks/credhub-interpolate.yml
+      params:
+        CREDHUB_CLIENT: ((credhub-client))
+        CREDHUB_SECRET: ((credhub-secret))
+        CREDHUB_SERVER: ((credhub-server))
+        CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+        PREFIX: ((credhub-interpolation-prefix))
+        INTERPOLATION_PATH: "nonprod/vars"
+      input_mapping:
+        files: variable
+      output_mapping:
+        interpolated-files: variable
     - task: apply-changes
       image: platform-automation-image
       file: configuration/tasks/om-apply-changes-skip-unchanged.yml
