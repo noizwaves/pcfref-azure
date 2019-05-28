@@ -23,7 +23,7 @@ resources:
   source:
     api_token: ((pivnet_token))
     product_slug: platform-automation
-    product_version: 2\.(.*)
+    product_version: 3\.0\.(.*)
     sort_by: semver
 
 - name: platform-automation-tasks
@@ -214,7 +214,7 @@ jobs:
       CREDHUB_SERVER: ((credhub-server))
       CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
       PREFIX: ((credhub-interpolation-prefix))
-      INTERPOLATION_PATH: "nonprod/product-configs"
+      INTERPOLATION_PATHS: "nonprod/product-configs"
     input_mapping:
       files: variable
     output_mapping:
@@ -258,7 +258,7 @@ jobs:
       CREDHUB_SERVER: ((credhub-server))
       CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
       PREFIX: ((credhub-interpolation-prefix))
-      INTERPOLATION_PATH: "nonprod/product-configs"
+      INTERPOLATION_PATHS: "nonprod/product-configs"
     input_mapping:
       files: variable
     output_mapping:
@@ -302,7 +302,7 @@ jobs:
       CREDHUB_SERVER: ((credhub-server))
       CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
       PREFIX: ((credhub-interpolation-prefix))
-      INTERPOLATION_PATH: "nonprod/product-configs"
+      INTERPOLATION_PATHS: "nonprod/product-configs"
     input_mapping:
       files: variable
     output_mapping:
@@ -346,7 +346,7 @@ jobs:
       CREDHUB_SERVER: ((credhub-server))
       CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
       PREFIX: ((credhub-interpolation-prefix))
-      INTERPOLATION_PATH: "nonprod/product-configs"
+      INTERPOLATION_PATHS: "nonprod/product-configs"
     input_mapping:
       files: variable
     output_mapping:
@@ -425,7 +425,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
@@ -490,7 +490,7 @@ jobs:
       CREDHUB_SERVER: ((credhub-server))
       CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
       PREFIX: ((credhub-interpolation-prefix))
-      INTERPOLATION_PATH: "nonprod/vars"
+      INTERPOLATION_PATHS: "nonprod/vars"
     input_mapping:
       files: variable
     output_mapping:
@@ -532,7 +532,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
@@ -581,7 +581,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
@@ -624,7 +624,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
@@ -668,7 +668,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
@@ -710,7 +710,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
@@ -756,7 +756,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
@@ -797,7 +797,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
@@ -843,7 +843,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
@@ -895,7 +895,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
@@ -961,7 +961,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
@@ -996,7 +996,7 @@ jobs:
         CREDHUB_SERVER: ((credhub-server))
         CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
         PREFIX: ((credhub-interpolation-prefix))
-        INTERPOLATION_PATH: "nonprod/vars"
+        INTERPOLATION_PATHS: "nonprod/vars"
       input_mapping:
         files: variable
       output_mapping:
