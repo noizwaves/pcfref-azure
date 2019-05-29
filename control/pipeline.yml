@@ -38,13 +38,6 @@ resources:
     uri: ((configuration.uri))
     branch: ((configuration.branch))
 
-- name: variable
-  type: git
-  source:
-    private_key: ((configuration_private_key.private_key))
-    uri: ((configuration.uri))
-    branch: ((configuration.branch))
-
 - name: lets-encrypt-cert
   type: credhub
   source:
@@ -72,9 +65,9 @@ credhub-interpolate-all: &credhub-interpolate-all
     PREFIX: ((credhub-interpolation-prefix))
     INTERPOLATION_PATHS: "control/vars"
   input_mapping:
-    files: variable
+    files: configuration
   output_mapping:
-    interpolated-files: variable
+    interpolated-files: configuration-with-secrets
 
 jobs:
 - name: pave-iaas
@@ -121,14 +114,13 @@ jobs:
       params:
         unpack: true
     - get: configuration
-    - get: variable
     - get: lets-encrypt-cert
   - <<: *credhub-interpolate-all
   - task: configure-ssl
     image: platform-automation-image
     file: configuration/tasks/update-ssl-certificate.yml
     input_mapping:
-      env: variable
+      env: configuration-with-secrets
     params:
       ENV_FILE: control/vars/env.yml
       CERTIFICATE_PEM: |
@@ -140,8 +132,8 @@ jobs:
     file: platform-automation-tasks/tasks/configure-director.yml
     input_mapping:
       config: configuration
-      env: variable
-      vars: variable
+      env: configuration-with-secrets
+      vars: configuration-with-secrets
     params:
       VARS_FILES: vars/control/vars/director-vars.yml
       ENV_FILE: control/vars/env.yml
@@ -150,6 +142,6 @@ jobs:
     image: platform-automation-image
     file: platform-automation-tasks/tasks/apply-director-changes.yml
     input_mapping:
-      env: variable
+      env: configuration-with-secrets
     params:
       ENV_FILE: control/vars/env.yml
