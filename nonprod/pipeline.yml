@@ -187,6 +187,25 @@ credhub-interpolate-all: &credhub-interpolate-all
   output_mapping:
     interpolated-files: configuration-with-secrets
 
+get-platform-automation-image: &get-platform-automation-image
+  get: platform-automation-image
+  params:
+    unpack: true
+
+get-platform-automation-tasks: &get-platform-automation-tasks
+  get: platform-automation-tasks
+  params:
+    unpack: true
+
+platform-automation: &platform-automation
+  aggregate:
+  - <<: *get-platform-automation-image
+  - <<: *get-platform-automation-tasks
+
+platform-automation-without-tasks: &platform-automation-without-tasks
+  aggregate:
+  - <<: *get-platform-automation-image
+
 jobs:
 - name: fetch-platform-automation
   plan:
@@ -201,13 +220,8 @@ jobs:
 
 - name: fetch-pas
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
   - task: credhub-interpolate
     <<: *credhub-interpolate-all
@@ -230,13 +244,8 @@ jobs:
 
 - name: fetch-mysql
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
   - task: credhub-interpolate
     <<: *credhub-interpolate-all
@@ -259,13 +268,8 @@ jobs:
 
 - name: fetch-rabbitmq
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
   - task: credhub-interpolate
     <<: *credhub-interpolate-all
@@ -288,13 +292,8 @@ jobs:
 
 - name: fetch-redis
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
   - task: credhub-interpolate
     <<: *credhub-interpolate-all
@@ -317,12 +316,10 @@ jobs:
 
 - name: pave-iaas
   plan:
+  - <<: *platform-automation-without-tasks
   - aggregate:
     - get: configuration
     - get: terraform-image
-    - get: platform-automation-image
-      params:
-        unpack: true
     - get: lets-encrypt-cert
   - task: terraform-apply
     image: terraform-image
@@ -352,13 +349,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
     - get: lets-encrypt-cert
   - task: credhub-interpolate
@@ -405,13 +397,8 @@ jobs:
 
 - name: backup-ops-manager
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
   - task: credhub-interpolate
     <<: *credhub-interpolate-all
@@ -431,13 +418,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
     - get: pas-product
   - task: credhub-interpolate
@@ -463,13 +445,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: pas-product
     - get: configuration
       passed:
@@ -494,13 +471,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
     - get: mysql-product
   - task: credhub-interpolate
@@ -526,13 +498,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
       passed:
       - upload-and-stage-mysql
@@ -554,13 +521,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
     - get: rabbitmq-product
   - task: credhub-interpolate
@@ -586,13 +548,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
       passed:
       - upload-and-stage-rabbitmq
@@ -613,13 +570,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
     - get: redis-product
   - task: credhub-interpolate
@@ -645,13 +597,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
       passed:
       - upload-and-stage-redis
@@ -673,13 +620,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: pas-stemcell
       trigger: true
     - get: mysql-stemcell
@@ -733,13 +675,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
       passed:
       - upload-stemcells
@@ -761,13 +698,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
   - task: credhub-interpolate
     <<: *credhub-interpolate-all
