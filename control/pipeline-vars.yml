@@ -1,3 +1,5 @@
+env_name: control
+
 configuration:
   uri: git@github.com:noizwaves/pcfref-azure.git
   branch: master

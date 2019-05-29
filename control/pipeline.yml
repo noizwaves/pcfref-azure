@@ -5,6 +5,13 @@ resource_types:
     repository: cfcommunity/credhub-resource
     tag: v0.1.1
 
+x-resource-anchors:
+  s3-products: &s3-products
+    access_key_id: ((s3.access_key_id))
+    bucket: ((s3.buckets.pivnet_products))
+    endpoint: ((s3.endpoint))
+    secret_access_key: ((s3_secret_access_key))
+
 resources:
 - name: terraform-image
   type: docker-image
@@ -15,29 +22,16 @@ resources:
 - name: platform-automation-tasks
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    bucket: ((s3.buckets.pivnet_products))
-    endpoint: ((s3.endpoint))
-    secret_access_key: ((s3_secret_access_key))
+    <<: *s3-products
     regexp: platform-automation/platform-automation-tasks-(.*).zip
 
 - name: platform-automation-image
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    bucket: ((s3.buckets.pivnet_products))
-    endpoint: ((s3.endpoint))
-    secret_access_key: ((s3_secret_access_key))
+    <<: *s3-products
     regexp: platform-automation/platform-automation-image-(.*).tgz
 
 - name: configuration
-  type: git
-  source:
-    private_key: ((configuration_private_key.private_key))
-    uri: ((configuration.uri))
-    branch: ((configuration.branch))
-
-- name: variable
   type: git
   source:
     private_key: ((configuration_private_key.private_key))
@@ -50,7 +44,7 @@ resources:
     server: ((credhub-server))
     username: ((credhub-client))
     password: ((credhub-secret))
-    path: /concourse/main/control/lets_encrypt_cert
+    path: /concourse/main/((env_name))/lets_encrypt_cert
     skip_tls_validation: true
 
 groups:
@@ -59,30 +53,49 @@ groups:
   - pave-iaas
   - install-opsman
 
-credhub-interpolate-all-vars: &credhub-interpolate-all-vars
-  image: platform-automation-image
-  file: platform-automation-tasks/tasks/credhub-interpolate.yml
-  params:
-    CREDHUB_CLIENT: ((credhub-client))
-    CREDHUB_SECRET: ((credhub-secret))
-    CREDHUB_SERVER: ((credhub-server))
-    CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-    PREFIX: ((credhub-interpolation-prefix))
-    INTERPOLATION_PATHS: "control/vars"
-  input_mapping:
-    files: variable
-  output_mapping:
-    interpolated-files: variable
+x-job-anchors:
+  credhub-interpolate-all: &credhub-interpolate-all
+    task: credhub-interpolate
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/credhub-interpolate.yml
+    params:
+      CREDHUB_CLIENT: ((credhub-client))
+      CREDHUB_SECRET: ((credhub-secret))
+      CREDHUB_SERVER: ((credhub-server))
+      CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+      PREFIX: ((credhub-interpolation-prefix))
+      INTERPOLATION_PATHS: "((env_name))/vars"
+    input_mapping:
+      files: configuration
+    output_mapping:
+      interpolated-files: configuration-with-secrets
+
+  _get-platform-automation-image: &_get-platform-automation-image
+    get: platform-automation-image
+    params:
+      unpack: true
+
+  _get-platform-automation-tasks: &_get-platform-automation-tasks
+    get: platform-automation-tasks
+    params:
+      unpack: true
+
+  get-platform-automation-resources: &get-platform-automation-resources
+    aggregate:
+    - <<: *_get-platform-automation-image
+    - <<: *_get-platform-automation-tasks
+
+  get-platform-automation-tasks-only: &get-platform-automation-tasks-only
+    aggregate:
+    - <<: *_get-platform-automation-image
 
 jobs:
 - name: pave-iaas
   plan:
+  - <<: *get-platform-automation-tasks-only
   - aggregate:
     - get: configuration
     - get: terraform-image
-    - get: platform-automation-image
-      params:
-        unpack: true
   - task: terraform-apply
     image: terraform-image
     file: configuration/tasks/terraform-apply.yml
@@ -94,7 +107,7 @@ jobs:
       TF_VAR_client_id: ((azure_client_id))
       TF_VAR_client_secret: ((azure_client_secret))
       ARM_ACCESS_KEY: ((pcfrefazureacct_secret_key))
-      TERRAFORM_CONFIG_DIR: control/terraform
+      TERRAFORM_CONFIG_DIR: ((env_name))/terraform
   - task: credhub-put
     image: platform-automation-image
     file: configuration/tasks/credhub-set-certificate.yml
@@ -105,50 +118,43 @@ jobs:
       CREDHUB_SECRET: ((credhub-secret))
       CREDHUB_SERVER: ((credhub-server))
       CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-      NAME: /concourse/main/control/lets_encrypt_cert
+      NAME: /concourse/main/((env_name))/lets_encrypt_cert
 
 - name: install-opsman
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-      - get: variable
-      - get: lets-encrypt-cert
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all-vars
-    - task: configure-ssl
-      image: platform-automation-image
-      file: configuration/tasks/update-ssl-certificate.yml
-      input_mapping:
-        env: variable
-      params:
-        ENV_FILE: control/vars/env.yml
-        CERTIFICATE_PEM: |
-          ((lets_encrypt_cert.certificate))
-          ((lets_encrypt_cert.ca))
-        PRIVATE_KEY_PEM: ((lets_encrypt_cert.private_key))
-    - task: configure-director
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/configure-director.yml
-      input_mapping:
-        config: configuration
-        env: variable
-        vars: variable
-      params:
-        VARS_FILES: vars/control/vars/director-vars.yml
-        ENV_FILE: control/vars/env.yml
-        DIRECTOR_CONFIG_FILE: control/config/director.yml
-    - task: apply-director-changes
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/apply-director-changes.yml
-      input_mapping:
-        env: variable
-      params:
-        ENV_FILE: control/vars/env.yml
+  - <<: *get-platform-automation-resources
+  - aggregate:
+    - get: configuration
+    - get: lets-encrypt-cert
+  - <<: *credhub-interpolate-all
+  - task: configure-ssl
+    image: platform-automation-image
+    file: configuration/tasks/update-ssl-certificate.yml
+    input_mapping:
+      env: configuration-with-secrets
+    params:
+      ENV_FILE: ((env_name))/vars/env.yml
+      CERTIFICATE_PEM: |
+        ((lets_encrypt_cert.certificate))
+        ((lets_encrypt_cert.ca))
+      PRIVATE_KEY_PEM: ((lets_encrypt_cert.private_key))
+  - task: configure-director
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-director.yml
+    input_mapping:
+      config: configuration
+      env: configuration-with-secrets
+      vars: configuration-with-secrets
+    params:
+      VARS_FILES: vars/((env_name))/vars/director-vars.yml
+      ENV_FILE: ((env_name))/vars/env.yml
+      DIRECTOR_CONFIG_FILE: ((env_name))/config/director.yml
+  - task: apply-director-changes
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/apply-director-changes.yml
+    input_mapping:
+      env: configuration-with-secrets
+    params:
+      ENV_FILE: ((env_name))/vars/env.yml

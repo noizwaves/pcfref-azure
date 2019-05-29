@@ -1,3 +1,5 @@
+env_name: nonprod
+
 configuration:
   uri: git@github.com:noizwaves/pcfref-azure.git
   branch: master
