@@ -70,29 +70,29 @@ x-job-anchors:
     output_mapping:
       interpolated-files: configuration-with-secrets
 
-  get-platform-automation-image: &get-platform-automation-image
+  _get-platform-automation-image: &_get-platform-automation-image
     get: platform-automation-image
     params:
       unpack: true
 
-  get-platform-automation-tasks: &get-platform-automation-tasks
+  _get-platform-automation-tasks: &_get-platform-automation-tasks
     get: platform-automation-tasks
     params:
       unpack: true
 
-  platform-automation: &platform-automation
+  get-platform-automation-resources: &get-platform-automation-resources
     aggregate:
-    - <<: *get-platform-automation-image
-    - <<: *get-platform-automation-tasks
+    - <<: *_get-platform-automation-image
+    - <<: *_get-platform-automation-tasks
 
-  platform-automation-without-tasks: &platform-automation-without-tasks
+  get-platform-automation-tasks-only: &get-platform-automation-tasks-only
     aggregate:
-    - <<: *get-platform-automation-image
+    - <<: *_get-platform-automation-image
 
 jobs:
 - name: pave-iaas
   plan:
-  - <<: *platform-automation-without-tasks
+  - <<: *get-platform-automation-tasks-only
   - aggregate:
     - get: configuration
     - get: terraform-image
@@ -124,7 +124,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
     - get: lets-encrypt-cert

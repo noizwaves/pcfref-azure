@@ -169,24 +169,24 @@ x-job-anchors:
     output_mapping:
       interpolated-files: configuration-with-secrets
 
-  get-platform-automation-image: &get-platform-automation-image
+  _get-platform-automation-image: &_get-platform-automation-image
     get: platform-automation-image
     params:
       unpack: true
 
-  get-platform-automation-tasks: &get-platform-automation-tasks
+  _get-platform-automation-tasks: &_get-platform-automation-tasks
     get: platform-automation-tasks
     params:
       unpack: true
 
-  platform-automation: &platform-automation
+  get-platform-automation-resources: &get-platform-automation-resources
     aggregate:
-    - <<: *get-platform-automation-image
-    - <<: *get-platform-automation-tasks
+    - <<: *_get-platform-automation-image
+    - <<: *_get-platform-automation-tasks
 
-  platform-automation-without-tasks: &platform-automation-without-tasks
+  get-platform-automation-tasks-only: &get-platform-automation-tasks-only
     aggregate:
-    - <<: *get-platform-automation-image
+    - <<: *_get-platform-automation-image
 
 jobs:
 - name: fetch-platform-automation
@@ -202,7 +202,7 @@ jobs:
 
 - name: fetch-pas
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
   - <<: *credhub-interpolate-all
@@ -225,7 +225,7 @@ jobs:
 
 - name: fetch-mysql
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
   - <<: *credhub-interpolate-all
@@ -248,7 +248,7 @@ jobs:
 
 - name: fetch-rabbitmq
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
   - <<: *credhub-interpolate-all
@@ -271,7 +271,7 @@ jobs:
 
 - name: fetch-redis
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
   - <<: *credhub-interpolate-all
@@ -294,7 +294,7 @@ jobs:
 
 - name: pave-iaas
   plan:
-  - <<: *platform-automation-without-tasks
+  - <<: *get-platform-automation-tasks-only
   - aggregate:
     - get: configuration
     - get: terraform-image
@@ -327,7 +327,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
     - get: lets-encrypt-cert
@@ -374,7 +374,7 @@ jobs:
 
 - name: backup-ops-manager
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
   - <<: *credhub-interpolate-all
@@ -394,7 +394,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
     - get: pas-product
@@ -420,7 +420,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: pas-product
     - get: configuration
@@ -445,7 +445,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
     - get: mysql-product
@@ -471,7 +471,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
       passed:
@@ -493,7 +493,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
     - get: rabbitmq-product
@@ -519,7 +519,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
       passed:
@@ -540,7 +540,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
     - get: redis-product
@@ -566,7 +566,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
       passed:
@@ -588,7 +588,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: pas-stemcell
       trigger: true
@@ -642,7 +642,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
       passed:
@@ -664,7 +664,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *platform-automation
+  - <<: *get-platform-automation-resources
   - aggregate:
     - get: configuration
   - <<: *credhub-interpolate-all
