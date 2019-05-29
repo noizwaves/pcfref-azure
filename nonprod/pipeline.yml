@@ -173,6 +173,7 @@ groups:
   - delete-foundation
 
 credhub-interpolate-all: &credhub-interpolate-all
+  task: credhub-interpolate
   image: platform-automation-image
   file: platform-automation-tasks/tasks/credhub-interpolate.yml
   params:
@@ -223,8 +224,7 @@ jobs:
   - <<: *platform-automation
   - aggregate:
     - get: configuration
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: download-pas-product-and-stemcell
     image: platform-automation-image
     file: platform-automation-tasks/tasks/download-product.yml
@@ -247,8 +247,7 @@ jobs:
   - <<: *platform-automation
   - aggregate:
     - get: configuration
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: download-mysql-product-and-stemcell
     image: platform-automation-image
     file: platform-automation-tasks/tasks/download-product.yml
@@ -271,8 +270,7 @@ jobs:
   - <<: *platform-automation
   - aggregate:
     - get: configuration
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: download-rabbitmq-product-and-stemcell
     image: platform-automation-image
     file: platform-automation-tasks/tasks/download-product.yml
@@ -295,8 +293,7 @@ jobs:
   - <<: *platform-automation
   - aggregate:
     - get: configuration
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: download-redis-product-and-stemcell
     image: platform-automation-image
     file: platform-automation-tasks/tasks/download-product.yml
@@ -353,8 +350,7 @@ jobs:
   - aggregate:
     - get: configuration
     - get: lets-encrypt-cert
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: configure-authentication
     image: platform-automation-image
     file: platform-automation-tasks/tasks/configure-authentication.yml
@@ -400,8 +396,7 @@ jobs:
   - <<: *platform-automation
   - aggregate:
     - get: configuration
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: export-installation
     image: platform-automation-image
     file: platform-automation-tasks/tasks/export-installation.yml
@@ -422,8 +417,7 @@ jobs:
   - aggregate:
     - get: configuration
     - get: pas-product
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: upload-pas
     image: platform-automation-image
     file: platform-automation-tasks/tasks/upload-product.yml
@@ -452,8 +446,7 @@ jobs:
       passed:
       - upload-and-stage-pas
     - get: lets-encrypt-cert
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: configure-pas
     image: platform-automation-image
     file: platform-automation-tasks/tasks/configure-product.yml
@@ -475,8 +468,7 @@ jobs:
   - aggregate:
     - get: configuration
     - get: mysql-product
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: upload-mysql
     image: platform-automation-image
     file: platform-automation-tasks/tasks/upload-product.yml
@@ -503,8 +495,7 @@ jobs:
     - get: configuration
       passed:
       - upload-and-stage-mysql
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: configure-mysql
     image: platform-automation-image
     file: platform-automation-tasks/tasks/configure-product.yml
@@ -525,8 +516,7 @@ jobs:
   - aggregate:
     - get: configuration
     - get: rabbitmq-product
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: upload-rabbitmq
     image: platform-automation-image
     file: platform-automation-tasks/tasks/upload-product.yml
@@ -553,8 +543,7 @@ jobs:
     - get: configuration
       passed:
       - upload-and-stage-rabbitmq
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: configure-rabbitmq
     image: platform-automation-image
     file: platform-automation-tasks/tasks/configure-product.yml
@@ -574,8 +563,7 @@ jobs:
   - aggregate:
     - get: configuration
     - get: redis-product
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: upload-redis
     image: platform-automation-image
     file: platform-automation-tasks/tasks/upload-product.yml
@@ -602,8 +590,7 @@ jobs:
     - get: configuration
       passed:
       - upload-and-stage-redis
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: configure-redis
     image: platform-automation-image
     file: platform-automation-tasks/tasks/configure-product.yml
@@ -636,8 +623,7 @@ jobs:
       - configure-mysql
       - configure-rabbitmq
       - configure-redis
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: upload-pas-stemcell
     image: platform-automation-image
     file: platform-automation-tasks/tasks/upload-stemcell.yml
@@ -684,8 +670,7 @@ jobs:
       - configure-mysql
       - configure-rabbitmq
       - configure-redis
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: apply-changes
     image: platform-automation-image
     file: configuration/tasks/om-apply-changes-skip-unchanged.yml
@@ -701,8 +686,7 @@ jobs:
   - <<: *platform-automation
   - aggregate:
     - get: configuration
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all
+  - <<: *credhub-interpolate-all
   - task: delete-installation
     image: platform-automation-image
     file: platform-automation-tasks/tasks/delete-installation.yml

@@ -59,7 +59,8 @@ groups:
   - pave-iaas
   - install-opsman
 
-credhub-interpolate-all-vars: &credhub-interpolate-all-vars
+credhub-interpolate-all: &credhub-interpolate-all
+  task: credhub-interpolate
   image: platform-automation-image
   file: platform-automation-tasks/tasks/credhub-interpolate.yml
   params:
@@ -121,8 +122,7 @@ jobs:
     - get: configuration
     - get: variable
     - get: lets-encrypt-cert
-  - task: credhub-interpolate
-    <<: *credhub-interpolate-all-vars
+  - <<: *credhub-interpolate-all
   - task: configure-ssl
     image: platform-automation-image
     file: configuration/tasks/update-ssl-certificate.yml
