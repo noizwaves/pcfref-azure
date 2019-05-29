@@ -152,40 +152,41 @@ groups:
   jobs:
   - delete-foundation
 
-credhub-interpolate-all: &credhub-interpolate-all
-  task: credhub-interpolate
-  image: platform-automation-image
-  file: platform-automation-tasks/tasks/credhub-interpolate.yml
-  params:
-    CREDHUB_CLIENT: ((credhub-client))
-    CREDHUB_SECRET: ((credhub-secret))
-    CREDHUB_SERVER: ((credhub-server))
-    CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
-    PREFIX: ((credhub-interpolation-prefix))
-    INTERPOLATION_PATHS: "nonprod/vars nonprod/product-configs"
-  input_mapping:
-    files: configuration
-  output_mapping:
-    interpolated-files: configuration-with-secrets
+x-job-anchors:
+  credhub-interpolate-all: &credhub-interpolate-all
+    task: credhub-interpolate
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/credhub-interpolate.yml
+    params:
+      CREDHUB_CLIENT: ((credhub-client))
+      CREDHUB_SECRET: ((credhub-secret))
+      CREDHUB_SERVER: ((credhub-server))
+      CREDHUB_CA_CERT: ((credhub-ca-cert.ca))
+      PREFIX: ((credhub-interpolation-prefix))
+      INTERPOLATION_PATHS: "nonprod/vars nonprod/product-configs"
+    input_mapping:
+      files: configuration
+    output_mapping:
+      interpolated-files: configuration-with-secrets
 
-get-platform-automation-image: &get-platform-automation-image
-  get: platform-automation-image
-  params:
-    unpack: true
+  get-platform-automation-image: &get-platform-automation-image
+    get: platform-automation-image
+    params:
+      unpack: true
 
-get-platform-automation-tasks: &get-platform-automation-tasks
-  get: platform-automation-tasks
-  params:
-    unpack: true
+  get-platform-automation-tasks: &get-platform-automation-tasks
+    get: platform-automation-tasks
+    params:
+      unpack: true
 
-platform-automation: &platform-automation
-  aggregate:
-  - <<: *get-platform-automation-image
-  - <<: *get-platform-automation-tasks
+  platform-automation: &platform-automation
+    aggregate:
+    - <<: *get-platform-automation-image
+    - <<: *get-platform-automation-tasks
 
-platform-automation-without-tasks: &platform-automation-without-tasks
-  aggregate:
-  - <<: *get-platform-automation-image
+  platform-automation-without-tasks: &platform-automation-without-tasks
+    aggregate:
+    - <<: *get-platform-automation-image
 
 jobs:
 - name: fetch-platform-automation
