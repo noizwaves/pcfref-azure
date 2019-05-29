@@ -11,6 +11,19 @@ resource_types:
     repository: cfcommunity/credhub-resource
     tag: v0.1.1
 
+x-resource-anchors:
+  s3-products: &s3-products
+    access_key_id: ((s3.access_key_id))
+    bucket: ((s3.buckets.pivnet_products))
+    endpoint: ((s3.endpoint))
+    secret_access_key: ((s3_secret_access_key))
+
+  s3-backups: &s3-backups
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3_secret_access_key))
+    endpoint: ((s3.endpoint))
+    bucket: ((s3.buckets.backups))
+
 resources:
 - name: terraform-image
   type: docker-image
@@ -29,91 +42,61 @@ resources:
 - name: platform-automation-tasks
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    bucket: ((s3.buckets.pivnet_products))
-    endpoint: ((s3.endpoint))
-    secret_access_key: ((s3_secret_access_key))
+    <<: *s3-products
     regexp: platform-automation/platform-automation-tasks-(.*).zip
 
 - name: platform-automation-image
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    bucket: ((s3.buckets.pivnet_products))
-    endpoint: ((s3.endpoint))
-    secret_access_key: ((s3_secret_access_key))
+    <<: *s3-products
     regexp: platform-automation/platform-automation-image-(.*).tgz
 
 - name: pas-stemcell
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    secret_access_key: ((s3_secret_access_key))
-    endpoint: ((s3.endpoint))
-    bucket: ((s3.buckets.pivnet_products))
+    <<: *s3-products
     regexp: pas-stemcell/bosh-stemcell-(.*).tgz
 
 - name: pas-product
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    secret_access_key: ((s3_secret_access_key))
-    endpoint: ((s3.endpoint))
-    bucket: ((s3.buckets.pivnet_products))
+    <<: *s3-products
     regexp: pas/cf-(.*).pivotal
 
 - name: mysql-stemcell
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    secret_access_key: ((s3_secret_access_key))
-    endpoint: ((s3.endpoint))
-    bucket: ((s3.buckets.pivnet_products))
+    <<: *s3-products
     regexp: mysql-stemcell/bosh-stemcell-(.*).tgz
 
 - name: mysql-product
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    secret_access_key: ((s3_secret_access_key))
-    endpoint: ((s3.endpoint))
-    bucket: ((s3.buckets.pivnet_products))
+    <<: *s3-products
     regexp: mysql/pivotal-mysql-(.*).pivotal
 
 - name: rabbitmq-stemcell
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    secret_access_key: ((s3_secret_access_key))
-    endpoint: ((s3.endpoint))
-    bucket: ((s3.buckets.pivnet_products))
+    <<: *s3-products
     regexp: rabbitmq-stemcell/bosh-stemcell-(.*).tgz
 
 - name: rabbitmq-product
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    secret_access_key: ((s3_secret_access_key))
-    endpoint: ((s3.endpoint))
-    bucket: ((s3.buckets.pivnet_products))
+    <<: *s3-products
     regexp: rabbitmq/p-rabbitmq-(.*).pivotal
 
 - name: redis-stemcell
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    secret_access_key: ((s3_secret_access_key))
-    endpoint: ((s3.endpoint))
-    bucket: ((s3.buckets.pivnet_products))
+    <<: *s3-products
     regexp: redis-stemcell/bosh-stemcell-(.*).tgz
 
 - name: redis-product
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    secret_access_key: ((s3_secret_access_key))
-    endpoint: ((s3.endpoint))
-    bucket: ((s3.buckets.pivnet_products))
+    <<: *s3-products
     regexp: redis/p-redis-(.*).pivotal
 
 - name: configuration
@@ -135,10 +118,7 @@ resources:
 - name: ops-manager-backup
   type: s3
   source:
-    access_key_id: ((s3.access_key_id))
-    secret_access_key: ((s3_secret_access_key))
-    endpoint: ((s3.endpoint))
-    bucket: ((s3.buckets.backups))
+    <<: *s3-backups
     regexp: nonprod/ops-manager/installation-(.*).zip
 
 groups:
