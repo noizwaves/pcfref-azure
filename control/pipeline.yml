@@ -69,15 +69,32 @@ credhub-interpolate-all: &credhub-interpolate-all
   output_mapping:
     interpolated-files: configuration-with-secrets
 
+get-platform-automation-image: &get-platform-automation-image
+  get: platform-automation-image
+  params:
+    unpack: true
+
+get-platform-automation-tasks: &get-platform-automation-tasks
+  get: platform-automation-tasks
+  params:
+    unpack: true
+
+platform-automation: &platform-automation
+  aggregate:
+  - <<: *get-platform-automation-image
+  - <<: *get-platform-automation-tasks
+
+platform-automation-without-tasks: &platform-automation-without-tasks
+  aggregate:
+  - <<: *get-platform-automation-image
+
 jobs:
 - name: pave-iaas
   plan:
+  - <<: *platform-automation-without-tasks
   - aggregate:
     - get: configuration
     - get: terraform-image
-    - get: platform-automation-image
-      params:
-        unpack: true
   - task: terraform-apply
     image: terraform-image
     file: configuration/tasks/terraform-apply.yml
@@ -106,13 +123,8 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
+  - <<: *platform-automation
   - aggregate:
-    - get: platform-automation-image
-      params:
-        unpack: true
-    - get: platform-automation-tasks
-      params:
-        unpack: true
     - get: configuration
     - get: lets-encrypt-cert
   - <<: *credhub-interpolate-all
