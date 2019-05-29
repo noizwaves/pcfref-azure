@@ -191,7 +191,6 @@ jobs:
 - name: fetch-platform-automation
   plan:
   - get: platform-automation-pivnet
-    # trigger: true
   - aggregate:
     - put: platform-automation-tasks
       params:
@@ -203,8 +202,6 @@ jobs:
 - name: fetch-pas
   plan:
   - aggregate:
-    # - get: daily
-    #   trigger: true
     - get: platform-automation-image
       params:
         unpack: true
@@ -234,8 +231,6 @@ jobs:
 - name: fetch-mysql
   plan:
   - aggregate:
-    # - get: daily
-    #   trigger: true
     - get: platform-automation-image
       params:
         unpack: true
@@ -265,8 +260,6 @@ jobs:
 - name: fetch-rabbitmq
   plan:
   - aggregate:
-    # - get: daily
-    #   trigger: true
     - get: platform-automation-image
       params:
         unpack: true
@@ -296,8 +289,6 @@ jobs:
 - name: fetch-redis
   plan:
   - aggregate:
-    # - get: daily
-    #   trigger: true
     - get: platform-automation-image
       params:
         unpack: true
@@ -361,57 +352,56 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-      - get: lets-encrypt-cert
-        # trigger: true
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: configure-authentication
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/configure-authentication.yml
-      attempts: 10
-      input_mapping:
-        env: configuration-with-secrets
-        config: configuration-with-secrets
+  - aggregate:
+    - get: platform-automation-image
       params:
-        ENV_FILE: nonprod/vars/env.yml
-        AUTH_CONFIG_FILE: nonprod/vars/auth.yml
-    - task: configure-ssl
-      image: platform-automation-image
-      file: configuration/tasks/update-ssl-certificate.yml
-      input_mapping:
-        env: configuration-with-secrets
+        unpack: true
+    - get: platform-automation-tasks
       params:
-        ENV_FILE: nonprod/vars/env.yml
-        CERTIFICATE_PEM: |
-          ((lets_encrypt_cert.certificate))
-          ((lets_encrypt_cert.ca))
-        PRIVATE_KEY_PEM: ((lets_encrypt_cert.private_key))
-    - task: configure-director
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/configure-director.yml
-      input_mapping:
-        config: configuration
-        env: configuration-with-secrets
-        vars: configuration-with-secrets
-      params:
-        VARS_FILES: vars/nonprod/vars/director-vars.yml
-        ENV_FILE: nonprod/vars/env.yml
-        DIRECTOR_CONFIG_FILE: nonprod/config/director.yml
-    - task: apply-director-changes
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/apply-director-changes.yml
-      input_mapping:
-        env: configuration-with-secrets
-      params:
-        ENV_FILE: nonprod/vars/env.yml
+        unpack: true
+    - get: configuration
+    - get: lets-encrypt-cert
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: configure-authentication
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-authentication.yml
+    attempts: 10
+    input_mapping:
+      env: configuration-with-secrets
+      config: configuration-with-secrets
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+      AUTH_CONFIG_FILE: nonprod/vars/auth.yml
+  - task: configure-ssl
+    image: platform-automation-image
+    file: configuration/tasks/update-ssl-certificate.yml
+    input_mapping:
+      env: configuration-with-secrets
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+      CERTIFICATE_PEM: |
+        ((lets_encrypt_cert.certificate))
+        ((lets_encrypt_cert.ca))
+      PRIVATE_KEY_PEM: ((lets_encrypt_cert.private_key))
+  - task: configure-director
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-director.yml
+    input_mapping:
+      config: configuration
+      env: configuration-with-secrets
+      vars: configuration-with-secrets
+    params:
+      VARS_FILES: vars/nonprod/vars/director-vars.yml
+      ENV_FILE: nonprod/vars/env.yml
+      DIRECTOR_CONFIG_FILE: nonprod/config/director.yml
+  - task: apply-director-changes
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/apply-director-changes.yml
+    input_mapping:
+      env: configuration-with-secrets
+    params:
+      ENV_FILE: nonprod/vars/env.yml
 
 - name: backup-ops-manager
   plan:
@@ -441,351 +431,350 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-      - get: pas-product
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: upload-pas
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-product.yml
-      input_mapping:
-        product: pas-product
-        env: configuration-with-secrets
+  - aggregate:
+    - get: platform-automation-image
       params:
-        ENV_FILE: nonprod/vars/env.yml
-    - task: stage-pas
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/stage-product.yml
+        unpack: true
+    - get: platform-automation-tasks
       params:
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        product: pas-product
-        env: configuration-with-secrets
+        unpack: true
+    - get: configuration
+    - get: pas-product
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: upload-pas
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-product.yml
+    input_mapping:
+      product: pas-product
+      env: configuration-with-secrets
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+  - task: stage-pas
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/stage-product.yml
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+    input_mapping:
+      product: pas-product
+      env: configuration-with-secrets
 
 - name: configure-pas
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: pas-product
-      - get: configuration
-        passed:
-        - upload-and-stage-pas
-      - get: lets-encrypt-cert
-        # trigger: true
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: configure-pas
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/configure-product.yml
+  - aggregate:
+    - get: platform-automation-image
       params:
-        CONFIG_FILE: nonprod/config/cf.yml
-        VARS_FILES: vars/nonprod/vars/cf-vars.yml
-        OPS_FILES: config/nonprod/operations/minimal-pas-2.4-instance-count.yml
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        config: configuration
-        env: configuration-with-secrets
-        vars: configuration-with-secrets
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: pas-product
+    - get: configuration
+      passed:
+      - upload-and-stage-pas
+    - get: lets-encrypt-cert
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: configure-pas
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-product.yml
+    params:
+      CONFIG_FILE: nonprod/config/cf.yml
+      VARS_FILES: vars/nonprod/vars/cf-vars.yml
+      OPS_FILES: config/nonprod/operations/minimal-pas-2.4-instance-count.yml
+      ENV_FILE: nonprod/vars/env.yml
+    input_mapping:
+      config: configuration
+      env: configuration-with-secrets
+      vars: configuration-with-secrets
 
 - name: upload-and-stage-mysql
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-      - get: mysql-product
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: upload-mysql
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-product.yml
-      input_mapping:
-        product: mysql-product
-        env: configuration-with-secrets
+  - aggregate:
+    - get: platform-automation-image
       params:
-        ENV_FILE: nonprod/vars/env.yml
-    - task: stage-mysql
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/stage-product.yml
+        unpack: true
+    - get: platform-automation-tasks
       params:
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        product: mysql-product
-        env: configuration-with-secrets
+        unpack: true
+    - get: configuration
+    - get: mysql-product
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: upload-mysql
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-product.yml
+    input_mapping:
+      product: mysql-product
+      env: configuration-with-secrets
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+  - task: stage-mysql
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/stage-product.yml
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+    input_mapping:
+      product: mysql-product
+      env: configuration-with-secrets
 
 - name: configure-mysql
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-        passed:
-        - upload-and-stage-mysql
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: configure-mysql
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/configure-product.yml
+  - aggregate:
+    - get: platform-automation-image
       params:
-        CONFIG_FILE: nonprod/config/mysql.yml
-        VARS_FILES: vars/nonprod/vars/mysql-vars.yml
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        config: configuration
-        env: configuration-with-secrets
-        vars: configuration-with-secrets
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: configuration
+      passed:
+      - upload-and-stage-mysql
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: configure-mysql
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-product.yml
+    params:
+      CONFIG_FILE: nonprod/config/mysql.yml
+      VARS_FILES: vars/nonprod/vars/mysql-vars.yml
+      ENV_FILE: nonprod/vars/env.yml
+    input_mapping:
+      config: configuration
+      env: configuration-with-secrets
+      vars: configuration-with-secrets
 
 - name: upload-and-stage-rabbitmq
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-      - get: rabbitmq-product
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: upload-rabbitmq
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-product.yml
-      input_mapping:
-        product: rabbitmq-product
-        env: configuration-with-secrets
+  - aggregate:
+    - get: platform-automation-image
       params:
-        ENV_FILE: nonprod/vars/env.yml
-    - task: stage-rabbitmq
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/stage-product.yml
+        unpack: true
+    - get: platform-automation-tasks
       params:
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        product: rabbitmq-product
-        env: configuration-with-secrets
+        unpack: true
+    - get: configuration
+    - get: rabbitmq-product
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: upload-rabbitmq
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-product.yml
+    input_mapping:
+      product: rabbitmq-product
+      env: configuration-with-secrets
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+  - task: stage-rabbitmq
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/stage-product.yml
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+    input_mapping:
+      product: rabbitmq-product
+      env: configuration-with-secrets
 
 - name: configure-rabbitmq
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-        passed:
-        - upload-and-stage-rabbitmq
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: configure-rabbitmq
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/configure-product.yml
+  - aggregate:
+    - get: platform-automation-image
       params:
-        CONFIG_FILE: nonprod/config/rabbitmq.yml
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        config: configuration
-        env: configuration-with-secrets
-        vars: configuration-with-secrets
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: configuration
+      passed:
+      - upload-and-stage-rabbitmq
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: configure-rabbitmq
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-product.yml
+    params:
+      CONFIG_FILE: nonprod/config/rabbitmq.yml
+      ENV_FILE: nonprod/vars/env.yml
+    input_mapping:
+      config: configuration
+      env: configuration-with-secrets
+      vars: configuration-with-secrets
 
 - name: upload-and-stage-redis
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-      - get: redis-product
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: upload-redis
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-product.yml
-      input_mapping:
-        product: redis-product
-        env: configuration-with-secrets
+  - aggregate:
+    - get: platform-automation-image
       params:
-        ENV_FILE: nonprod/vars/env.yml
-    - task: stage-redis
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/stage-product.yml
+        unpack: true
+    - get: platform-automation-tasks
       params:
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        product: redis-product
-        env: configuration-with-secrets
+        unpack: true
+    - get: configuration
+    - get: redis-product
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: upload-redis
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-product.yml
+    input_mapping:
+      product: redis-product
+      env: configuration-with-secrets
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+  - task: stage-redis
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/stage-product.yml
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+    input_mapping:
+      product: redis-product
+      env: configuration-with-secrets
 
 - name: configure-redis
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-        passed:
-        - upload-and-stage-redis
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: configure-redis
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/configure-product.yml
+  - aggregate:
+    - get: platform-automation-image
       params:
-        CONFIG_FILE: nonprod/config/redis.yml
-        VARS_FILES: vars/nonprod/vars/redis-vars.yml
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        config: configuration
-        env: configuration-with-secrets
-        vars: configuration-with-secrets
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: configuration
+      passed:
+      - upload-and-stage-redis
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: configure-redis
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-product.yml
+    params:
+      CONFIG_FILE: nonprod/config/redis.yml
+      VARS_FILES: vars/nonprod/vars/redis-vars.yml
+      ENV_FILE: nonprod/vars/env.yml
+    input_mapping:
+      config: configuration
+      env: configuration-with-secrets
+      vars: configuration-with-secrets
 
 - name: upload-stemcells
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: pas-stemcell
-        trigger: true
-      - get: mysql-stemcell
-        trigger: true
-      - get: rabbitmq-stemcell
-        trigger: true
-      - get: redis-stemcell
-        trigger: true
-      - get: configuration
-        passed:
-        - configure-pas
-        - configure-mysql
-        - configure-rabbitmq
-        - configure-redis
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: upload-pas-stemcell
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-stemcell.yml
-      input_mapping:
-        env: configuration-with-secrets
-        stemcell: pas-stemcell
+  - aggregate:
+    - get: platform-automation-image
       params:
-        ENV_FILE: nonprod/vars/env.yml
-    - task: upload-mysql-stemcell
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-stemcell.yml
-      input_mapping:
-        env: configuration-with-secrets
-        stemcell: mysql-stemcell
+        unpack: true
+    - get: platform-automation-tasks
       params:
-        ENV_FILE: nonprod/vars/env.yml
-    - task: upload-rabbitmq-stemcell
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-stemcell.yml
-      input_mapping:
-        env: configuration-with-secrets
-        stemcell: rabbitmq-stemcell
-      params:
-        ENV_FILE: nonprod/vars/env.yml
-    - task: upload-redis-stemcell
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/upload-stemcell.yml
-      input_mapping:
-        env: configuration-with-secrets
-        stemcell: redis-stemcell
-      params:
-        ENV_FILE: nonprod/vars/env.yml
+        unpack: true
+    - get: pas-stemcell
+      trigger: true
+    - get: mysql-stemcell
+      trigger: true
+    - get: rabbitmq-stemcell
+      trigger: true
+    - get: redis-stemcell
+      trigger: true
+    - get: configuration
+      passed:
+      - configure-pas
+      - configure-mysql
+      - configure-rabbitmq
+      - configure-redis
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: upload-pas-stemcell
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-stemcell.yml
+    input_mapping:
+      env: configuration-with-secrets
+      stemcell: pas-stemcell
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+  - task: upload-mysql-stemcell
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-stemcell.yml
+    input_mapping:
+      env: configuration-with-secrets
+      stemcell: mysql-stemcell
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+  - task: upload-rabbitmq-stemcell
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-stemcell.yml
+    input_mapping:
+      env: configuration-with-secrets
+      stemcell: rabbitmq-stemcell
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+  - task: upload-redis-stemcell
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-stemcell.yml
+    input_mapping:
+      env: configuration-with-secrets
+      stemcell: redis-stemcell
+    params:
+      ENV_FILE: nonprod/vars/env.yml
 
 - name: apply-product-changes
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-        passed:
-        - upload-stemcells
-        - configure-pas
-        - configure-mysql
-        - configure-rabbitmq
-        - configure-redis
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: apply-changes
-      image: platform-automation-image
-      file: configuration/tasks/om-apply-changes-skip-unchanged.yml
+  - aggregate:
+    - get: platform-automation-image
       params:
-        ENV_FILE: nonprod/vars/env.yml
-      input_mapping:
-        env: configuration-with-secrets
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: configuration
+      passed:
+      - upload-stemcells
+      - configure-pas
+      - configure-mysql
+      - configure-rabbitmq
+      - configure-redis
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: apply-changes
+    image: platform-automation-image
+    file: configuration/tasks/om-apply-changes-skip-unchanged.yml
+    params:
+      ENV_FILE: nonprod/vars/env.yml
+    input_mapping:
+      env: configuration-with-secrets
 
 - name: delete-foundation
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all
-    - task: delete-installation
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/delete-installation.yml
-      input_mapping:
-        env: configuration-with-secrets
+  - aggregate:
+    - get: platform-automation-image
       params:
-        ENV_FILE: nonprod/vars/env.yml
+        unpack: true
+    - get: platform-automation-tasks
+      params:
+        unpack: true
+    - get: configuration
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all
+  - task: delete-installation
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/delete-installation.yml
+    input_mapping:
+      env: configuration-with-secrets
+    params:
+      ENV_FILE: nonprod/vars/env.yml

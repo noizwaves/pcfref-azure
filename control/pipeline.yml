@@ -111,44 +111,44 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-    - aggregate:
-      - get: platform-automation-image
-        params:
-          unpack: true
-      - get: platform-automation-tasks
-        params:
-          unpack: true
-      - get: configuration
-      - get: variable
-      - get: lets-encrypt-cert
-    - task: credhub-interpolate
-      <<: *credhub-interpolate-all-vars
-    - task: configure-ssl
-      image: platform-automation-image
-      file: configuration/tasks/update-ssl-certificate.yml
-      input_mapping:
-        env: variable
+  - aggregate:
+    - get: platform-automation-image
       params:
-        ENV_FILE: control/vars/env.yml
-        CERTIFICATE_PEM: |
-          ((lets_encrypt_cert.certificate))
-          ((lets_encrypt_cert.ca))
-        PRIVATE_KEY_PEM: ((lets_encrypt_cert.private_key))
-    - task: configure-director
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/configure-director.yml
-      input_mapping:
-        config: configuration
-        env: variable
-        vars: variable
+        unpack: true
+    - get: platform-automation-tasks
       params:
-        VARS_FILES: vars/control/vars/director-vars.yml
-        ENV_FILE: control/vars/env.yml
-        DIRECTOR_CONFIG_FILE: control/config/director.yml
-    - task: apply-director-changes
-      image: platform-automation-image
-      file: platform-automation-tasks/tasks/apply-director-changes.yml
-      input_mapping:
-        env: variable
-      params:
-        ENV_FILE: control/vars/env.yml
+        unpack: true
+    - get: configuration
+    - get: variable
+    - get: lets-encrypt-cert
+  - task: credhub-interpolate
+    <<: *credhub-interpolate-all-vars
+  - task: configure-ssl
+    image: platform-automation-image
+    file: configuration/tasks/update-ssl-certificate.yml
+    input_mapping:
+      env: variable
+    params:
+      ENV_FILE: control/vars/env.yml
+      CERTIFICATE_PEM: |
+        ((lets_encrypt_cert.certificate))
+        ((lets_encrypt_cert.ca))
+      PRIVATE_KEY_PEM: ((lets_encrypt_cert.private_key))
+  - task: configure-director
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-director.yml
+    input_mapping:
+      config: configuration
+      env: variable
+      vars: variable
+    params:
+      VARS_FILES: vars/control/vars/director-vars.yml
+      ENV_FILE: control/vars/env.yml
+      DIRECTOR_CONFIG_FILE: control/config/director.yml
+  - task: apply-director-changes
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/apply-director-changes.yml
+    input_mapping:
+      env: variable
+    params:
+      ENV_FILE: control/vars/env.yml
