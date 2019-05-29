@@ -473,8 +473,6 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
-        passed:
-        - install-opsman
       - get: platform-automation-tasks
         params:
           unpack: true
@@ -508,13 +506,13 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
-        passed:
-          - upload-and-stage-pas
       - get: platform-automation-tasks
         params:
           unpack: true
       - get: pas-product
       - get: configuration
+        passed:
+        - upload-and-stage-pas
       - get: variable
       - get: lets-encrypt-cert
         # trigger: true
@@ -541,8 +539,6 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
-        passed:
-        - install-opsman
       - get: platform-automation-tasks
         params:
           unpack: true
@@ -580,6 +576,8 @@ jobs:
         params:
           unpack: true
       - get: configuration
+        passed:
+        - upload-and-stage-mysql
       - get: variable
     - task: credhub-interpolate
       <<: *credhub-interpolate-all-vars
@@ -603,8 +601,6 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
-        passed:
-        - install-opsman
       - get: platform-automation-tasks
         params:
           unpack: true
@@ -638,12 +634,12 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
-        passed:
-          - upload-and-stage-rabbitmq
       - get: platform-automation-tasks
         params:
           unpack: true
       - get: configuration
+        passed:
+        - upload-and-stage-rabbitmq
       - get: variable
     - task: credhub-interpolate
       <<: *credhub-interpolate-all-vars
@@ -666,8 +662,6 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
-        passed:
-        - install-opsman
       - get: platform-automation-tasks
         params:
           unpack: true
@@ -701,12 +695,12 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
-        passed:
-        - upload-and-stage-redis
       - get: platform-automation-tasks
         params:
           unpack: true
       - get: configuration
+        passed:
+        - upload-and-stage-redis
       - get: variable
     - task: credhub-interpolate
       <<: *credhub-interpolate-all-vars
@@ -730,11 +724,6 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
-        passed:
-          - configure-pas
-          - configure-mysql
-          - configure-rabbitmq
-          - configure-redis
       - get: platform-automation-tasks
         params:
           unpack: true
@@ -747,6 +736,11 @@ jobs:
       - get: redis-stemcell
         trigger: true
       - get: configuration
+        passed:
+        - configure-pas
+        - configure-mysql
+        - configure-rabbitmq
+        - configure-redis
       - get: variable
     - task: credhub-interpolate
       <<: *credhub-interpolate-all-vars
@@ -791,16 +785,16 @@ jobs:
       - get: platform-automation-image
         params:
           unpack: true
-        passed:
-          - upload-stemcells
-          - configure-pas
-          - configure-mysql
-          - configure-rabbitmq
-          - configure-redis
       - get: platform-automation-tasks
         params:
           unpack: true
       - get: configuration
+        passed:
+        - upload-stemcells
+        - configure-pas
+        - configure-mysql
+        - configure-rabbitmq
+        - configure-redis
       - get: variable
     - task: credhub-interpolate
       <<: *credhub-interpolate-all-vars
