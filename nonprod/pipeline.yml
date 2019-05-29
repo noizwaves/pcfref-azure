@@ -123,13 +123,6 @@ resources:
     uri: ((configuration.uri))
     branch: ((configuration.branch))
 
-- name: variable
-  type: git
-  source:
-    private_key: ((configuration_private_key.private_key))
-    uri: ((configuration.uri))
-    branch: ((configuration.branch))
-
 - name: lets-encrypt-cert
   type: credhub
   source:
@@ -190,9 +183,9 @@ credhub-interpolate-all-vars: &credhub-interpolate-all-vars
     PREFIX: ((credhub-interpolation-prefix))
     INTERPOLATION_PATHS: "nonprod/vars"
   input_mapping:
-    files: variable
+    files: configuration
   output_mapping:
-    interpolated-files: variable
+    interpolated-files: configuration-with-secrets
 
 credhub-interpolate-all-product-configs: &credhub-interpolate-all-product-configs
   image: platform-automation-image
@@ -205,9 +198,9 @@ credhub-interpolate-all-product-configs: &credhub-interpolate-all-product-config
     PREFIX: ((credhub-interpolation-prefix))
     INTERPOLATION_PATHS: "nonprod/product-configs"
   input_mapping:
-    files: variable
+    files: configuration
   output_mapping:
-    interpolated-files: variable
+    interpolated-files: configuration-with-secrets
 
 jobs:
 - name: fetch-platform-automation
@@ -234,7 +227,6 @@ jobs:
       params:
         unpack: true
     - get: configuration
-    - get: variable
   - task: credhub-interpolate
     <<: *credhub-interpolate-all-product-configs
   - task: download-pas-product-and-stemcell
@@ -243,7 +235,7 @@ jobs:
     params:
       CONFIG_FILE: nonprod/product-configs/pas.yml
     input_mapping:
-      config: variable
+      config: configuration-with-secrets
     output_mapping:
       downloaded-stemcell: pas-stemcell
   - aggregate:
@@ -266,7 +258,6 @@ jobs:
       params:
         unpack: true
     - get: configuration
-    - get: variable
   - task: credhub-interpolate
     <<: *credhub-interpolate-all-product-configs
   - task: download-mysql-product-and-stemcell
@@ -275,7 +266,7 @@ jobs:
     params:
       CONFIG_FILE: nonprod/product-configs/mysql.yml
     input_mapping:
-      config: variable
+      config: configuration-with-secrets
     output_mapping:
       downloaded-stemcell: mysql-stemcell
   - aggregate:
@@ -298,7 +289,6 @@ jobs:
       params:
         unpack: true
     - get: configuration
-    - get: variable
   - task: credhub-interpolate
     <<: *credhub-interpolate-all-product-configs
   - task: download-rabbitmq-product-and-stemcell
@@ -307,7 +297,7 @@ jobs:
     params:
       CONFIG_FILE: nonprod/product-configs/rabbitmq.yml
     input_mapping:
-      config: variable
+      config: configuration-with-secrets
     output_mapping:
       downloaded-stemcell: rabbitmq-stemcell
   - aggregate:
@@ -330,7 +320,6 @@ jobs:
       params:
         unpack: true
     - get: configuration
-    - get: variable
   - task: credhub-interpolate
     <<: *credhub-interpolate-all-product-configs
   - task: download-redis-product-and-stemcell
@@ -339,7 +328,7 @@ jobs:
     params:
       CONFIG_FILE: nonprod/product-configs/redis.yml
     input_mapping:
-      config: variable
+      config: configuration-with-secrets
     output_mapping:
       downloaded-stemcell: redis-stemcell
   - aggregate:
@@ -395,7 +384,6 @@ jobs:
         params:
           unpack: true
       - get: configuration
-      - get: variable
       - get: lets-encrypt-cert
         # trigger: true
     - task: credhub-interpolate
@@ -405,8 +393,8 @@ jobs:
       file: platform-automation-tasks/tasks/configure-authentication.yml
       attempts: 10
       input_mapping:
-        env: variable
-        config: variable
+        env: configuration-with-secrets
+        config: configuration-with-secrets
       params:
         ENV_FILE: nonprod/vars/env.yml
         AUTH_CONFIG_FILE: nonprod/vars/auth.yml
@@ -414,7 +402,7 @@ jobs:
       image: platform-automation-image
       file: configuration/tasks/update-ssl-certificate.yml
       input_mapping:
-        env: variable
+        env: configuration-with-secrets
       params:
         ENV_FILE: nonprod/vars/env.yml
         CERTIFICATE_PEM: |
@@ -426,8 +414,8 @@ jobs:
       file: platform-automation-tasks/tasks/configure-director.yml
       input_mapping:
         config: configuration
-        env: variable
-        vars: variable
+        env: configuration-with-secrets
+        vars: configuration-with-secrets
       params:
         VARS_FILES: vars/nonprod/vars/director-vars.yml
         ENV_FILE: nonprod/vars/env.yml
@@ -436,7 +424,7 @@ jobs:
       image: platform-automation-image
       file: platform-automation-tasks/tasks/apply-director-changes.yml
       input_mapping:
-        env: variable
+        env: configuration-with-secrets
       params:
         ENV_FILE: nonprod/vars/env.yml
 
@@ -450,14 +438,13 @@ jobs:
       params:
         unpack: true
     - get: configuration
-    - get: variable
   - task: credhub-interpolate
     <<: *credhub-interpolate-all-vars
   - task: export-installation
     image: platform-automation-image
     file: platform-automation-tasks/tasks/export-installation.yml
     input_mapping:
-      env: variable
+      env: configuration-with-secrets
     params:
       ENV_FILE: nonprod/vars/env.yml
       INSTALLATION_FILE: installation-$timestamp.zip
@@ -476,7 +463,6 @@ jobs:
       - get: platform-automation-tasks
         params:
           unpack: true
-      - get: variable
       - get: configuration
       - get: pas-product
     - task: credhub-interpolate
@@ -486,7 +472,7 @@ jobs:
       file: platform-automation-tasks/tasks/upload-product.yml
       input_mapping:
         product: pas-product
-        env: variable
+        env: configuration-with-secrets
       params:
         ENV_FILE: nonprod/vars/env.yml
     - task: stage-pas
@@ -496,7 +482,7 @@ jobs:
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
         product: pas-product
-        env: variable
+        env: configuration-with-secrets
 
 - name: configure-pas
   serial: true
@@ -513,7 +499,6 @@ jobs:
       - get: configuration
         passed:
         - upload-and-stage-pas
-      - get: variable
       - get: lets-encrypt-cert
         # trigger: true
     - task: credhub-interpolate
@@ -528,8 +513,8 @@ jobs:
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
         config: configuration
-        env: variable
-        vars: variable
+        env: configuration-with-secrets
+        vars: configuration-with-secrets
 
 - name: upload-and-stage-mysql
   serial: true
@@ -542,7 +527,6 @@ jobs:
       - get: platform-automation-tasks
         params:
           unpack: true
-      - get: variable
       - get: configuration
       - get: mysql-product
     - task: credhub-interpolate
@@ -552,7 +536,7 @@ jobs:
       file: platform-automation-tasks/tasks/upload-product.yml
       input_mapping:
         product: mysql-product
-        env: variable
+        env: configuration-with-secrets
       params:
         ENV_FILE: nonprod/vars/env.yml
     - task: stage-mysql
@@ -562,7 +546,7 @@ jobs:
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
         product: mysql-product
-        env: variable
+        env: configuration-with-secrets
 
 - name: configure-mysql
   serial: true
@@ -578,7 +562,6 @@ jobs:
       - get: configuration
         passed:
         - upload-and-stage-mysql
-      - get: variable
     - task: credhub-interpolate
       <<: *credhub-interpolate-all-vars
     - task: configure-mysql
@@ -590,8 +573,8 @@ jobs:
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
         config: configuration
-        env: variable
-        vars: variable
+        env: configuration-with-secrets
+        vars: configuration-with-secrets
 
 - name: upload-and-stage-rabbitmq
   serial: true
@@ -604,7 +587,6 @@ jobs:
       - get: platform-automation-tasks
         params:
           unpack: true
-      - get: variable
       - get: configuration
       - get: rabbitmq-product
     - task: credhub-interpolate
@@ -614,7 +596,7 @@ jobs:
       file: platform-automation-tasks/tasks/upload-product.yml
       input_mapping:
         product: rabbitmq-product
-        env: variable
+        env: configuration-with-secrets
       params:
         ENV_FILE: nonprod/vars/env.yml
     - task: stage-rabbitmq
@@ -624,7 +606,7 @@ jobs:
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
         product: rabbitmq-product
-        env: variable
+        env: configuration-with-secrets
 
 - name: configure-rabbitmq
   serial: true
@@ -640,7 +622,6 @@ jobs:
       - get: configuration
         passed:
         - upload-and-stage-rabbitmq
-      - get: variable
     - task: credhub-interpolate
       <<: *credhub-interpolate-all-vars
     - task: configure-rabbitmq
@@ -651,8 +632,8 @@ jobs:
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
         config: configuration
-        env: variable
-        vars: variable
+        env: configuration-with-secrets
+        vars: configuration-with-secrets
 
 - name: upload-and-stage-redis
   serial: true
@@ -665,7 +646,6 @@ jobs:
       - get: platform-automation-tasks
         params:
           unpack: true
-      - get: variable
       - get: configuration
       - get: redis-product
     - task: credhub-interpolate
@@ -675,7 +655,7 @@ jobs:
       file: platform-automation-tasks/tasks/upload-product.yml
       input_mapping:
         product: redis-product
-        env: variable
+        env: configuration-with-secrets
       params:
         ENV_FILE: nonprod/vars/env.yml
     - task: stage-redis
@@ -685,7 +665,7 @@ jobs:
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
         product: redis-product
-        env: variable
+        env: configuration-with-secrets
 
 - name: configure-redis
   serial: true
@@ -701,7 +681,6 @@ jobs:
       - get: configuration
         passed:
         - upload-and-stage-redis
-      - get: variable
     - task: credhub-interpolate
       <<: *credhub-interpolate-all-vars
     - task: configure-redis
@@ -713,8 +692,8 @@ jobs:
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
         config: configuration
-        env: variable
-        vars: variable
+        env: configuration-with-secrets
+        vars: configuration-with-secrets
 
 - name: upload-stemcells
   serial: true
@@ -741,14 +720,13 @@ jobs:
         - configure-mysql
         - configure-rabbitmq
         - configure-redis
-      - get: variable
     - task: credhub-interpolate
       <<: *credhub-interpolate-all-vars
     - task: upload-pas-stemcell
       image: platform-automation-image
       file: platform-automation-tasks/tasks/upload-stemcell.yml
       input_mapping:
-        env: variable
+        env: configuration-with-secrets
         stemcell: pas-stemcell
       params:
         ENV_FILE: nonprod/vars/env.yml
@@ -756,7 +734,7 @@ jobs:
       image: platform-automation-image
       file: platform-automation-tasks/tasks/upload-stemcell.yml
       input_mapping:
-        env: variable
+        env: configuration-with-secrets
         stemcell: mysql-stemcell
       params:
         ENV_FILE: nonprod/vars/env.yml
@@ -764,7 +742,7 @@ jobs:
       image: platform-automation-image
       file: platform-automation-tasks/tasks/upload-stemcell.yml
       input_mapping:
-        env: variable
+        env: configuration-with-secrets
         stemcell: rabbitmq-stemcell
       params:
         ENV_FILE: nonprod/vars/env.yml
@@ -772,7 +750,7 @@ jobs:
       image: platform-automation-image
       file: platform-automation-tasks/tasks/upload-stemcell.yml
       input_mapping:
-        env: variable
+        env: configuration-with-secrets
         stemcell: redis-stemcell
       params:
         ENV_FILE: nonprod/vars/env.yml
@@ -795,7 +773,6 @@ jobs:
         - configure-mysql
         - configure-rabbitmq
         - configure-redis
-      - get: variable
     - task: credhub-interpolate
       <<: *credhub-interpolate-all-vars
     - task: apply-changes
@@ -804,7 +781,7 @@ jobs:
       params:
         ENV_FILE: nonprod/vars/env.yml
       input_mapping:
-        env: variable
+        env: configuration-with-secrets
 
 - name: delete-foundation
   serial: true
@@ -818,13 +795,12 @@ jobs:
         params:
           unpack: true
       - get: configuration
-      - get: variable
     - task: credhub-interpolate
       <<: *credhub-interpolate-all-vars
     - task: delete-installation
       image: platform-automation-image
       file: platform-automation-tasks/tasks/delete-installation.yml
       input_mapping:
-        env: variable
+        env: configuration-with-secrets
       params:
         ENV_FILE: nonprod/vars/env.yml
