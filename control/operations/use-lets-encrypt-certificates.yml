@@ -1,0 +1,64 @@
+# ATC's cert, why fullchain? See https://github.com/concourse/concourse/issues/1599#issuecomment-330257264
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/tls_cert?
+  value: |
+    ((lets_encrypt_cert.certificate))
+    ((lets_encrypt_cert.ca))
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/tls_key?
+  value: ((lets_encrypt_cert.private_key))
+
+# ATC's connection to UAA
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/generic_oauth/token_url?
+  value: ((external_url)):8443/oauth/token
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=atc/properties/generic_oauth/userinfo_url?
+  value: ((external_url)):8443/userinfo
+
+# UAA's cert
+- type: replace
+  path: /instance_groups/name=web/jobs/name=uaa/properties/uaa/sslCertificate?
+  value: ((lets_encrypt_cert.certificate))
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=uaa/properties/uaa/sslPrivateKey?
+  value: ((lets_encrypt_cert.private_key))
+
+# Add chain to UAA
+- type: replace
+  path: /instance_groups/name=web/jobs/name=uaa/properties/uaa/ca_certs/-
+  value: ((lets_encrypt_cert.ca))
+
+# UAA's SAML cert
+- type: replace
+  path: /instance_groups/name=web/jobs/name=uaa/properties/login/saml/serviceProviderCertificate?
+  value: ((lets_encrypt_cert.certificate))
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=uaa/properties/login/saml/serviceProviderKey?
+  value: ((lets_encrypt_cert.private_key))
+
+# Credhub's certs
+- type: replace
+  path: /instance_groups/name=web/jobs/name=credhub/properties/credhub/tls/certificate?
+  value: |
+    ((lets_encrypt_cert.certificate))
+    ((lets_encrypt_cert.ca))
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=credhub/properties/credhub/tls/private_key?
+  value: ((lets_encrypt_cert.private_key))
+
+- type: replace
+  path: /instance_groups/name=web/jobs/name=credhub/properties/credhub/ca_certificate?
+  value: ((lets_encrypt_cert.ca))
+
+# Add chain to Credhub
+- type: replace
+  path: /instance_groups/name=web/jobs/name=credhub/properties/credhub/authentication/uaa/ca_certs/-
+  value: ((lets_encrypt_cert.ca))
+
+# TODO: postgres
