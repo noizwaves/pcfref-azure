@@ -51,7 +51,7 @@ resources:
     <<: *s3-products
     regexp: platform-automation/platform-automation-image-(.*).tgz
 
-- name: ops-manager
+- name: ops-manager-image
   type: s3
   source:
     <<: *s3-products
@@ -230,7 +230,7 @@ jobs:
     input_mapping:
       config: configuration-with-secrets
   - aggregate:
-    - put: ops-manager
+    - put: ops-manager-image
       params:
         file: downloaded-product/*.yml
 
@@ -364,14 +364,14 @@ jobs:
   - aggregate:
     - get: configuration
     - get: lets-encrypt-cert
-    - get: ops-manager
+    - get: ops-manager-image
     - get: ops-manager-state
   - <<: *credhub-interpolate-all
   - task: create-vm
     image: platform-automation-image
     file: platform-automation-tasks/tasks/create-vm.yml
     input_mapping:
-      image: ops-manager
+      image: ops-manager-image
       state: ops-manager-state
       config: configuration
       vars: configuration-with-secrets
