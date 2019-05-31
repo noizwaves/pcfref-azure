@@ -51,6 +51,12 @@ resources:
     <<: *s3-products
     regexp: platform-automation/platform-automation-image-(.*).tgz
 
+- name: ops-manager
+  type: s3
+  source:
+    <<: *s3-products
+    regexp: ops-manager/ops-manager-(.*).yml
+
 - name: pas-stemcell
   type: s3
   source:
@@ -141,6 +147,7 @@ groups:
 - name: fetch
   jobs:
   - fetch-platform-automation
+  - fetch-ops-manager
   - fetch-pas
   - fetch-mysql
   - fetch-rabbitmq
@@ -198,6 +205,24 @@ jobs:
     - put: platform-automation-image
       params:
         file: platform-automation-pivnet/*image*.tgz
+
+- name: fetch-ops-manager
+  plan:
+  - <<: *get-platform-automation-resources
+  - aggregate:
+    - get: configuration
+  - <<: *credhub-interpolate-all
+  - task: download-ops-manager
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/download-product.yml
+    params:
+      CONFIG_FILE: ((env_name))/product-configs/ops-manager.yml
+    input_mapping:
+      config: configuration-with-secrets
+  - aggregate:
+    - put: ops-manager
+      params:
+        file: downloaded-product/*.yml
 
 - name: fetch-pas
   plan:
