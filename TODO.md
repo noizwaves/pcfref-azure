@@ -1,5 +1,7 @@
 ## Backlog
 
+- Update nonprod to 2.5
+- Manage nonprod Ops Manager through p-automator
 - Document Let's Encrypt implementation
 - Document Control Plane implementation
 - Document growing pcfref-azure
