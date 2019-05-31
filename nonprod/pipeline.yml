@@ -140,6 +140,7 @@ groups:
 - name: install
   jobs:
   - install-opsman
+  - upgrade-opsman
   - upload-and-stage-pas
   - configure-pas
   - upload-and-stage-mysql
@@ -423,6 +424,38 @@ jobs:
       env: configuration-with-secrets
     params:
       ENV_FILE: ((env_name))/vars/env.yml
+
+- name: upgrade-opsman
+  serial: true
+  serial_groups: [ install ]
+  plan:
+  - <<: *get-platform-automation-resources
+  - aggregate:
+    - get: ops-manager-image
+    - get: ops-manager-backup
+    - get: ops-manager-state
+    - get: configuration
+  - <<: *credhub-interpolate-all
+  - task: upgrade-ops-manager
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upgrade-opsman.yml
+    input_mapping:
+      installation: ops-manager-backup
+      image: ops-manager-image
+      state: ops-manager-state
+      config: configuration
+      env: configuration-with-secrets
+      vars: configuration-with-secrets
+    params:
+      ENV_FILE: ((env_name))/vars/env.yml
+      OPSMAN_CONFIG_FILE: ((env_name))/config/ops-manager.yml
+      VARS_FILES: vars/((env_name))/vars/ops-manager-vars.yml
+      STATE_FILE: state.json
+    ensure:
+      do:
+      - put: ops-manager-state
+        params:
+          file: generated-state/state.json
 
 - name: backup-ops-manager
   plan:
