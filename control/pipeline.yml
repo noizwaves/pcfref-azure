@@ -64,6 +64,7 @@ x-job-anchors:
       CREDHUB_SERVER: ((credhub-server))
       PREFIX: ((credhub-interpolation-prefix))
       INTERPOLATION_PATHS: "((env_name))/vars"
+      SKIP_MISSING: false
     input_mapping:
       files: configuration
     output_mapping:

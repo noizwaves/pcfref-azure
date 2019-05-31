@@ -55,7 +55,16 @@ resources:
   type: s3
   source:
     <<: *s3-products
-    regexp: ops-manager/ops-manager-(.*).yml
+    regexp: ops-manager/OpsManager(.*)onAzure.yml
+
+- name: ops-manager-state
+  type: s3
+  source:
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3_secret_access_key))
+    endpoint: ((s3.endpoint))
+    bucket: state
+    regexp: nonprod/ops-manager/(.*).json
 
 - name: pas-stemcell
   type: s3
@@ -170,6 +179,7 @@ x-job-anchors:
       CREDHUB_SERVER: ((credhub-server))
       PREFIX: ((credhub-interpolation-prefix))
       INTERPOLATION_PATHS: "((env_name))/vars ((env_name))/product-configs"
+      SKIP_MISSING: false
     input_mapping:
       files: configuration
     output_mapping:
@@ -354,7 +364,26 @@ jobs:
   - aggregate:
     - get: configuration
     - get: lets-encrypt-cert
+    - get: ops-manager
+    - get: ops-manager-state
   - <<: *credhub-interpolate-all
+  - task: create-vm
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/create-vm.yml
+    input_mapping:
+      image: ops-manager
+      state: ops-manager-state
+      config: configuration
+      vars: configuration-with-secrets
+    params:
+      VARS_FILES: vars/((env_name))/vars/ops-manager-vars.yml
+      STATE_FILE: ((env_name))/ops-manager/state.json
+      OPSMAN_CONFIG_FILE: ((env_name))/config/ops-manager.yml
+    ensure:
+      do:
+      - put: ops-manager-state
+        params:
+          file: generated-state/state.json
   - task: configure-authentication
     image: platform-automation-image
     file: platform-automation-tasks/tasks/configure-authentication.yml
