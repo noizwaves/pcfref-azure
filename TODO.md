@@ -1,10 +1,10 @@
 ## Backlog
 
-- Enhance nonprod pipeline to use manually versioned state.json files in minio for Ops Manager state
-- Perform backup explicitly before opsman upgrade?
 - Update nonprod to 2.5
 - Manage nonprod Ops Manager through p-automator
 - Document Let's Encrypt implementation
+- Configure `ignore_paths` on configuration to control triggering of jobs
+- Perform backup explicitly before opsman upgrade?
 - Document Control Plane implementation
 - Document growing pcfref-azure
 - Document PCFRef Azure (rational, users)
