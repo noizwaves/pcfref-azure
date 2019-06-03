@@ -207,6 +207,40 @@ x-job-anchors:
     aggregate:
     - <<: *_get-platform-automation-image
 
+  remove-version-from-state-filename: &remove-version-from-state-filename
+    task: remove-version-from-state-filename
+    image: platform-automation-image
+    config:
+      platform: linux
+      inputs:
+      - name: ops-manager-state-s3
+      outputs:
+      - name: renamed-state
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          cp ops-manager-state-s3/state-*.json renamed-state/state.json
+
+  add-version-to-state-filename: &add-version-to-state-filename
+    task: add-version-to-state-filename
+    image: platform-automation-image
+    config:
+      platform: linux
+      inputs:
+      - name: generated-state
+      outputs:
+      - name: versioned
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          timestamp="$(date '+%Y%m%d.%-H%M.%S+%Z')"
+          cp generated-state/state.json versioned/state-$timestamp.json
+          echo "New state file is named state-$timestamp.json"
+
 jobs:
 - name: fetch-platform-automation
   plan:
@@ -370,20 +404,7 @@ jobs:
     - get: ops-manager-image
     - get: ops-manager-state-s3
   - <<: *credhub-interpolate-all
-  - task: remove-version-from-state-filename
-    image: platform-automation-image
-    config:
-      platform: linux
-      inputs:
-      - name: ops-manager-state-s3
-      outputs:
-      - name: renamed-state
-      run:
-        path: sh
-        args:
-        - -c
-        - |
-          cp ops-manager-state-s3/state-*.json renamed-state/state.json
+  - <<: *remove-version-from-state-filename
   - task: create-vm
     image: platform-automation-image
     file: platform-automation-tasks/tasks/create-vm.yml
@@ -398,22 +419,7 @@ jobs:
       OPSMAN_CONFIG_FILE: ((env_name))/config/ops-manager.yml
     ensure:
       do:
-      - task: add-version-to-state-filename
-        image: platform-automation-image
-        config:
-          platform: linux
-          inputs:
-          - name: generated-state
-          outputs:
-          - name: versioned
-          run:
-            path: sh
-            args:
-            - -c
-            - |
-              timestamp="$(date '+%Y%m%d.%-H%M.%S+%Z')"
-              cp generated-state/state.json versioned/state-$timestamp.json
-              echo "New state file is named state-$timestamp.json"
+      - <<: *add-version-to-state-filename
       - put: ops-manager-state-s3
         params:
           file: versioned/state-*.json
@@ -468,20 +474,7 @@ jobs:
     - get: ops-manager-state-s3
     - get: configuration
   - <<: *credhub-interpolate-all
-  - task: remove-version-from-state-filename
-    image: platform-automation-image
-    config:
-      platform: linux
-      inputs:
-      - name: ops-manager-state-s3
-      outputs:
-      - name: renamed-state
-      run:
-        path: sh
-        args:
-        - -c
-        - |
-          cp ops-manager-state-s3/state-*.json renamed-state/state.json
+  - <<: *remove-version-from-state-filename
   - task: upgrade-ops-manager
     image: platform-automation-image
     file: platform-automation-tasks/tasks/upgrade-opsman.yml
@@ -499,21 +492,7 @@ jobs:
       STATE_FILE: state.json
     ensure:
       do:
-      - task: add-version-to-state-filename
-        image: platform-automation-image
-        config:
-          platform: linux
-          inputs:
-          - name: generated-state
-          outputs:
-          - name: versioned
-          run:
-            path: sh
-            args:
-            - -c
-            - |
-              timestamp="$(date '+%Y%m%d.%-H%M.%S+%Z')"
-              cp generated-state/state.json versioned/state-$timestamp.json
+      - <<: *add-version-to-state-filename
       - put: ops-manager-state-s3
         params:
           file: versioned/state-*.json
