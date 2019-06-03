@@ -57,13 +57,16 @@ resources:
     <<: *s3-products
     regexp: ops-manager/OpsManager(.*)onAzure.yml
 
-- name: ops-manager-state
-  type: git
+- name: ops-manager-state-s3
+  type: s3
   source:
-    paths: [ nonprod/state/state.json ]
-    private_key: ((configuration_private_key.private_key))
-    uri: ((configuration.uri))
-    branch: ((configuration.branch))
+    access_key_id: ((s3.access_key_id))
+    secret_access_key: ((s3_secret_access_key))
+    endpoint: ((s3.endpoint))
+    bucket: state
+    regexp: nonprod/ops-manager/state-(.*).json
+    initial_path: nonprod/ops-manager/state-0.json
+    initial_content_text: "{}"
 
 - name: pas-stemcell
   type: s3
@@ -116,7 +119,6 @@ resources:
 - name: configuration
   type: git
   source:
-    ignore_paths: [ "*/state/state.json" ]
     private_key: ((configuration_private_key.private_key))
     uri: ((configuration.uri))
     branch: ((configuration.branch))
@@ -366,40 +368,55 @@ jobs:
     - get: configuration
     - get: lets-encrypt-cert
     - get: ops-manager-image
-    - get: ops-manager-state
+    - get: ops-manager-state-s3
   - <<: *credhub-interpolate-all
+  - task: remove-version-from-state-filename
+    image: platform-automation-image
+    config:
+      platform: linux
+      inputs:
+      - name: ops-manager-state-s3
+      outputs:
+      - name: renamed-state
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          cp ops-manager-state-s3/state-*.json renamed-state/state.json
   - task: create-vm
     image: platform-automation-image
     file: platform-automation-tasks/tasks/create-vm.yml
     input_mapping:
       image: ops-manager-image
-      state: ops-manager-state
+      state: renamed-state
       config: configuration
       vars: configuration-with-secrets
     params:
       VARS_FILES: vars/((env_name))/vars/ops-manager-vars.yml
-      STATE_FILE: ((env_name))/state/state.json
+      STATE_FILE: state.json
       OPSMAN_CONFIG_FILE: ((env_name))/config/ops-manager.yml
     ensure:
       do:
-      - task: make-commit
+      - task: add-version-to-state-filename
         image: platform-automation-image
-        file: platform-automation-tasks/tasks/make-git-commit.yml
-        input_mapping:
-          repository: ops-manager-state
-          file-source: generated-state
-        output_mapping:
-          repository-commit: new-state-commit
+        config:
+          platform: linux
+          inputs:
+          - name: generated-state
+          outputs:
+          - name: versioned
+          run:
+            path: sh
+            args:
+            - -c
+            - |
+              timestamp="$(date '+%Y%m%d.%-H%M.%S+%Z')"
+              cp generated-state/state.json versioned/state-$timestamp.json
+              echo "New state file is named state-$timestamp.json"
+      - put: ops-manager-state-s3
         params:
-          FILE_SOURCE_PATH: state.json
-          FILE_DESTINATION_PATH: ((env_name))/state/state.json
-          GIT_AUTHOR_EMAIL: "bot@azure.pcfref.com"
-          GIT_AUTHOR_NAME: "Platform Automation Bot"
-          COMMIT_MESSAGE: "Update ((env_name)) Ops Manager state"
-      - put: ops-manager-state
-        params:
-          repository: new-state-commit
-          merge: true
+          file: versioned/state-*.json
   - task: configure-authentication
     image: platform-automation-image
     file: platform-automation-tasks/tasks/configure-authentication.yml
@@ -448,16 +465,30 @@ jobs:
   - aggregate:
     - get: ops-manager-image
     - get: ops-manager-backup
-    - get: ops-manager-state
+    - get: ops-manager-state-s3
     - get: configuration
   - <<: *credhub-interpolate-all
+  - task: remove-version-from-state-filename
+    image: platform-automation-image
+    config:
+      platform: linux
+      inputs:
+      - name: ops-manager-state-s3
+      outputs:
+      - name: renamed-state
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          cp ops-manager-state-s3/state-*.json renamed-state/state.json
   - task: upgrade-ops-manager
     image: platform-automation-image
     file: platform-automation-tasks/tasks/upgrade-opsman.yml
     input_mapping:
       installation: ops-manager-backup
       image: ops-manager-image
-      state: ops-manager-state
+      state: renamed-state
       config: configuration
       env: configuration-with-secrets
       vars: configuration-with-secrets
@@ -465,27 +496,27 @@ jobs:
       ENV_FILE: ((env_name))/vars/env.yml
       OPSMAN_CONFIG_FILE: ((env_name))/config/ops-manager.yml
       VARS_FILES: vars/((env_name))/vars/ops-manager-vars.yml
-      STATE_FILE: ((env_name))/state/state.json
+      STATE_FILE: state.json
     ensure:
       do:
-      - task: make-commit
+      - task: add-version-to-state-filename
         image: platform-automation-image
-        file: platform-automation-tasks/tasks/make-git-commit.yml
-        input_mapping:
-          repository: ops-manager-state
-          file-source: generated-state
-        output_mapping:
-          repository-commit: new-state-commit
+        config:
+          platform: linux
+          inputs:
+          - name: generated-state
+          outputs:
+          - name: versioned
+          run:
+            path: sh
+            args:
+            - -c
+            - |
+              timestamp="$(date '+%Y%m%d.%-H%M.%S+%Z')"
+              cp generated-state/state.json versioned/state-$timestamp.json
+      - put: ops-manager-state-s3
         params:
-          FILE_SOURCE_PATH: state.json
-          FILE_DESTINATION_PATH: ((env_name))/state/state.json
-          GIT_AUTHOR_EMAIL: "bot@azure.pcfref.com"
-          GIT_AUTHOR_NAME: "Platform Automation Bot"
-          COMMIT_MESSAGE: "Update ((env_name)) Ops Manager state"
-      - put: ops-manager-state
-        params:
-          repository: new-state-commit
-          merge: true
+          file: versioned/state-*.json
 
 - name: backup-ops-manager
   plan:
