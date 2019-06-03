@@ -34,6 +34,7 @@ resources:
 - name: configuration
   type: git
   source:
+    ignore_paths: [ "*/state/state.json" ]
     private_key: ((configuration_private_key.private_key))
     uri: ((configuration.uri))
     branch: ((configuration.branch))

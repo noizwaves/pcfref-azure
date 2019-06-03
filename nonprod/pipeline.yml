@@ -58,13 +58,12 @@ resources:
     regexp: ops-manager/OpsManager(.*)onAzure.yml
 
 - name: ops-manager-state
-  type: s3
+  type: git
   source:
-    access_key_id: ((s3.access_key_id))
-    secret_access_key: ((s3_secret_access_key))
-    endpoint: ((s3.endpoint))
-    bucket: state
-    regexp: nonprod/ops-manager/(.*).json
+    paths: [ nonprod/state/state.json ]
+    private_key: ((configuration_private_key.private_key))
+    uri: ((configuration.uri))
+    branch: ((configuration.branch))
 
 - name: pas-stemcell
   type: s3
@@ -117,6 +116,7 @@ resources:
 - name: configuration
   type: git
   source:
+    ignore_paths: [ "*/state/state.json" ]
     private_key: ((configuration_private_key.private_key))
     uri: ((configuration.uri))
     branch: ((configuration.branch))
@@ -378,13 +378,28 @@ jobs:
       vars: configuration-with-secrets
     params:
       VARS_FILES: vars/((env_name))/vars/ops-manager-vars.yml
-      STATE_FILE: ((env_name))/ops-manager/state.json
+      STATE_FILE: ((env_name))/state/state.json
       OPSMAN_CONFIG_FILE: ((env_name))/config/ops-manager.yml
     ensure:
       do:
+      - task: make-commit
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/make-git-commit.yml
+        input_mapping:
+          repository: ops-manager-state
+          file-source: generated-state
+        output_mapping:
+          repository-commit: new-state-commit
+        params:
+          FILE_SOURCE_PATH: state.json
+          FILE_DESTINATION_PATH: ((env_name))/state/state.json
+          GIT_AUTHOR_EMAIL: "bot@azure.pcfref.com"
+          GIT_AUTHOR_NAME: "Platform Automation Bot"
+          COMMIT_MESSAGE: "Update ((env_name)) Ops Manager state"
       - put: ops-manager-state
         params:
-          file: generated-state/state.json
+          repository: new-state-commit
+          merge: true
   - task: configure-authentication
     image: platform-automation-image
     file: platform-automation-tasks/tasks/configure-authentication.yml
@@ -450,12 +465,27 @@ jobs:
       ENV_FILE: ((env_name))/vars/env.yml
       OPSMAN_CONFIG_FILE: ((env_name))/config/ops-manager.yml
       VARS_FILES: vars/((env_name))/vars/ops-manager-vars.yml
-      STATE_FILE: state.json
+      STATE_FILE: ((env_name))/state/state.json
     ensure:
       do:
+      - task: make-commit
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/make-git-commit.yml
+        input_mapping:
+          repository: ops-manager-state
+          file-source: generated-state
+        output_mapping:
+          repository-commit: new-state-commit
+        params:
+          FILE_SOURCE_PATH: state.json
+          FILE_DESTINATION_PATH: ((env_name))/state/state.json
+          GIT_AUTHOR_EMAIL: "bot@azure.pcfref.com"
+          GIT_AUTHOR_NAME: "Platform Automation Bot"
+          COMMIT_MESSAGE: "Update ((env_name)) Ops Manager state"
       - put: ops-manager-state
         params:
-          file: generated-state/state.json
+          repository: new-state-commit
+          merge: true
 
 - name: backup-ops-manager
   plan:
