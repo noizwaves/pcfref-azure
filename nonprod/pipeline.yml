@@ -164,6 +164,7 @@ groups:
   - upload-and-stage-redis
   - configure-redis
   - upload-and-stage-healthwatch
+  - configure-healthwatch
   - upload-stemcells
   - apply-product-changes
 - name: iaas
@@ -772,6 +773,26 @@ jobs:
       product: healthwatch-product
       env: configuration-with-secrets
 
+- name: configure-healthwatch
+  serial: true
+  serial_groups: [ install ]
+  plan:
+  - <<: *get-platform-automation-resources
+  - aggregate:
+    - get: configuration
+      passed:
+      - upload-and-stage-healthwatch
+  - <<: *credhub-interpolate-all
+  - task: configure-healthwatch
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-product.yml
+    params:
+      CONFIG_FILE: ((env_name))/config/healthwatch.yml
+      ENV_FILE: ((env_name))/vars/env.yml
+    input_mapping:
+      config: configuration
+      env: configuration-with-secrets
+
 - name: upload-stemcells
   serial: true
   serial_groups: [ install ]
@@ -794,6 +815,7 @@ jobs:
       - configure-mysql
       - configure-rabbitmq
       - configure-redis
+      - configure-healthwatch
   - <<: *credhub-interpolate-all
   - task: upload-pas-stemcell
     image: platform-automation-image
@@ -849,6 +871,7 @@ jobs:
       - configure-mysql
       - configure-rabbitmq
       - configure-redis
+      - configure-healthwatch
   - <<: *credhub-interpolate-all
   - task: apply-changes
     image: platform-automation-image

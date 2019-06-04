@@ -1,0 +1,72 @@
+product-name: p-healthwatch
+product-properties:
+  .healthwatch-forwarder.boshhealth_instance_count:
+    value: 1
+  .healthwatch-forwarder.boshtasks_instance_count:
+    value: 2
+  .healthwatch-forwarder.canary_instance_count:
+    value: 2
+  .healthwatch-forwarder.cli_instance_count:
+    value: 2
+  .healthwatch-forwarder.foundation_name:
+    value: nonprod
+  .healthwatch-forwarder.health_check_az:
+    value: "null"
+  .healthwatch-forwarder.ingestor_instance_count:
+    value: 4
+  .healthwatch-forwarder.opsman_instance_count:
+    value: 2
+  .healthwatch-forwarder.publish_to_eva:
+    value: true
+  .healthwatch-forwarder.worker_instance_count:
+    value: 4
+  .mysql.skip_name_resolve:
+    value: true
+  .properties.boshtasks:
+    value: disable
+  .properties.indicators_selector:
+    value: "No"
+  .properties.opsman:
+    value: enable
+  .properties.opsman.enable.url:
+    value: https://pcf.nonprod.azure.pcfref.com
+  .properties.syslog_selector:
+    value: "No"
+network-properties:
+  network:
+    name: infrastructure
+  other_availability_zones:
+  - name: "null"
+  service_network:
+    name: services
+  singleton_availability_zone:
+    name: "null"
+resource-config:
+  healthwatch-forwarder:
+    instances: automatic
+    persistent_disk:
+      size_mb: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+  mysql:
+    instances: automatic
+    persistent_disk:
+      size_mb: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+  redis:
+    instances: automatic
+    persistent_disk:
+      size_mb: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+errand-config:
+  delete-space:
+    pre-delete-state: true
+  push-apps:
+    post-deploy-state: true
+  smoke-tests:
+    post-deploy-state: true
