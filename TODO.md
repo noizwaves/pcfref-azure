@@ -1,8 +1,8 @@
 ## Backlog
 
+- automate OM backups
+- backup and restore pipelines: https://github.com/pivotal-cf/bbr-pcf-pipeline-tasks/blob/master/examples/pas-pipeline.yml
 - Update nonprod to 2.5
-- Manage nonprod Ops Manager through p-automator
-- Document Let's Encrypt implementation
 - Configure `ignore_paths` on configuration to control triggering of jobs
 - Perform backup explicitly before opsman upgrade?
 - Document Control Plane implementation
@@ -13,7 +13,6 @@
     - Newer VM types
 - Automate nonprod standup (6am) and teardown (6pm)
 - cf-mgmt pipelines
-- backup and restore pipelines: https://github.com/pivotal-cf/bbr-pcf-pipeline-tasks/blob/master/examples/pas-pipeline.yml
 - one team per foundation (nonprod, control)
 - Create 2 more foundations, sandbox and prod
 - Azure service broker
