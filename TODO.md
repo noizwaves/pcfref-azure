@@ -21,3 +21,4 @@
 
 Fancy
 - Terraform interpolate
+- Use [Azure Blobstore resource](https://github.com/pivotal-cf/azure-blobstore-resource)
