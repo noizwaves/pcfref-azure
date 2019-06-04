@@ -30,3 +30,7 @@ This deployment represents a PCF deployment that:
 - has 1 foundation (`nonprod`)
 - is managed by a Control Plane (`control`) using Platform Automation
 - is paved with Terraform
+
+## Articles
+
+- [Automatically rotate Let's Encrypt certificates](./lets-encrypt-certificates.md)
