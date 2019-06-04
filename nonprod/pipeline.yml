@@ -163,6 +163,7 @@ groups:
   - configure-rabbitmq
   - upload-and-stage-redis
   - configure-redis
+  - upload-and-stage-healthwatch
   - upload-stemcells
   - apply-product-changes
 - name: iaas
@@ -745,6 +746,32 @@ jobs:
       env: configuration-with-secrets
       vars: configuration-with-secrets
 
+- name: upload-and-stage-healthwatch
+  serial: true
+  serial_groups: [ install ]
+  plan:
+  - <<: *get-platform-automation-resources
+  - aggregate:
+    - get: configuration
+    - get: healthwatch-product
+  - <<: *credhub-interpolate-all
+  - task: upload-healthwatch
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-product.yml
+    input_mapping:
+      product: healthwatch-product
+      env: configuration-with-secrets
+    params:
+      ENV_FILE: ((env_name))/vars/env.yml
+  - task: stage-healthwatch
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/stage-product.yml
+    params:
+      ENV_FILE: ((env_name))/vars/env.yml
+    input_mapping:
+      product: healthwatch-product
+      env: configuration-with-secrets
+
 - name: upload-stemcells
   serial: true
   serial_groups: [ install ]
@@ -758,6 +785,8 @@ jobs:
     - get: rabbitmq-stemcell
       trigger: true
     - get: redis-stemcell
+      trigger: true
+    - get: healthwatch-stemcell
       trigger: true
     - get: configuration
       passed:
@@ -796,6 +825,14 @@ jobs:
     input_mapping:
       env: configuration-with-secrets
       stemcell: redis-stemcell
+    params:
+      ENV_FILE: ((env_name))/vars/env.yml
+  - task: upload-healthwatch-stemcell
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/upload-stemcell.yml
+    input_mapping:
+      env: configuration-with-secrets
+      stemcell: healthwatch-stemcell
     params:
       ENV_FILE: ((env_name))/vars/env.yml
 
