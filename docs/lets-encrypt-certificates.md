@@ -1,3 +1,7 @@
+---
+title: Automatically rotate Let's Encrypt certificates
+---
+
 # Automatically rotate Let's Encrypt certificates
 
 ## Goals
