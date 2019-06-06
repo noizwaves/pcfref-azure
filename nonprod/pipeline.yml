@@ -246,7 +246,7 @@ x-job-anchors:
     - <<: *_get-platform-automation-image
     - <<: *_get-platform-automation-tasks
 
-  get-platform-automation-tasks-only: &get-platform-automation-tasks-only
+  get-platform-automation-image-only: &get-platform-automation-image-only
     aggregate:
     - <<: *_get-platform-automation-image
 
@@ -437,7 +437,7 @@ jobs:
 
 - name: pave-iaas
   plan:
-  - <<: *get-platform-automation-tasks-only
+  - <<: *get-platform-automation-image-only
   - aggregate:
     - get: configuration
     - get: terraform-image
@@ -935,7 +935,7 @@ jobs:
   serial: true
   serial_groups: [ install ]
   plan:
-  - <<: *get-platform-automation-tasks-only
+  - <<: *get-platform-automation-image-only
   - aggregate:
     - get: bbr-tasks
     - get: bbr-release
@@ -975,7 +975,7 @@ jobs:
 - name: backup-director
   serial: true
   plan:
-  - <<: *get-platform-automation-tasks-only
+  - <<: *get-platform-automation-image-only
   - aggregate:
     - get: bbr-tasks
     - get: bbr-release
