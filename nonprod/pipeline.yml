@@ -282,7 +282,7 @@ x-job-anchors:
         - |
           timestamp="$(date '+%Y%m%d.%-H%M.%S+%Z')"
           cp generated-state/state.json versioned/state-$timestamp.json
-          echo "New state file is named state-$timestamp.json"
+          echo "File is named to state-$timestamp.json"
 
   opsman_credentials: &opsman_credentials
     OPSMAN_URL: https://((ops_manager_host))
@@ -967,7 +967,7 @@ jobs:
         - |
           timestamp="$(date '+%Y%m%d.%-H%M.%S+%Z')"
           cp pas-backup-artifact/pas-backup.tar versioned/pas-backup-$timestamp.tar
-          echo "New state file is named pas-backup-$timestamp.tar"
+          echo "File is named to pas-backup-$timestamp.tar"
   - put: pas-backup
     params:
       file: versioned/pas-backup-*.tar
@@ -1007,7 +1007,7 @@ jobs:
         - |
           timestamp="$(date '+%Y%m%d.%-H%M.%S+%Z')"
           cp director-backup-artifact/director-backup.tar versioned/director-backup-$timestamp.tar
-          echo "New state file is named director-backup-$timestamp.tar"
+          echo "File is named to director-backup-$timestamp.tar"
   - put: director-backup
     params:
       file: versioned/director-backup-*.tar
