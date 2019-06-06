@@ -51,6 +51,20 @@ resources:
     <<: *s3-products
     regexp: platform-automation/platform-automation-image-(.*).tgz
 
+- name: bbr-release
+  type: pivnet
+  source:
+    api_token: ((pivnet_token))
+    product_slug: p-bosh-backup-and-restore
+    product_version: 1\.5\.(.*)
+    sort_by: semver
+
+- name: bbr-tasks
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf/bbr-pcf-pipeline-tasks.git
+    branch: v1.2.0
+
 - name: ops-manager-image
   type: s3
   source:
@@ -150,6 +164,12 @@ resources:
     <<: *s3-backups
     regexp: ((env_name))/ops-manager/installation-(.*).zip
 
+- name: pas-backup
+  type: s3
+  source:
+    <<: *s3-backups
+    regexp: ((env_name))/pas/pas-backup-(.*).tar
+
 groups:
 - name: install
   jobs:
@@ -182,6 +202,7 @@ groups:
 - name: backup
   jobs:
   - backup-ops-manager
+  - backup-pas
 - name: delete
   jobs:
   - delete-foundation
@@ -255,6 +276,12 @@ x-job-anchors:
           timestamp="$(date '+%Y%m%d.%-H%M.%S+%Z')"
           cp generated-state/state.json versioned/state-$timestamp.json
           echo "New state file is named state-$timestamp.json"
+
+  opsman_credentials: &opsman_credentials
+    OPSMAN_URL: https://((ops_manager_host))
+    OPSMAN_USERNAME: admin
+    OPSMAN_PASSWORD: ((opsman_password))
+    OPSMAN_PRIVATE_KEY: ((ops_manager_ssh_key.private_key))
 
 jobs:
 - name: fetch-platform-automation
@@ -896,3 +923,44 @@ jobs:
       env: configuration-with-secrets
     params:
       ENV_FILE: ((env_name))/vars/env.yml
+
+- name: backup-pas
+  serial: true
+  serial_groups: [ install ]
+  plan:
+  - <<: *get-platform-automation-tasks-only
+  - aggregate:
+    - get: bbr-tasks
+    - get: bbr-release
+  - task: extract-binary
+    file: bbr-tasks/tasks/extract-bbr-binary/task.yml
+  - task: bbr-backup-pas
+    file: bbr-tasks/tasks/bbr-backup-pas/task.yml
+    input_mapping:
+      bbr-pipeline-tasks-repo: bbr-tasks
+    params:
+      <<: *opsman_credentials
+    on_failure:
+      task: bbr-cleanup-pas
+      file: bbr-pipeline-tasks-repo/tasks/bbr-cleanup-pas/task.yml
+      params:
+        <<: *opsman_credentials
+  - task: add-version-to-artifact
+    image: platform-automation-image
+    config:
+      platform: linux
+      inputs:
+      - name: pas-backup-artifact
+      outputs:
+      - name: versioned
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          timestamp="$(date '+%Y%m%d.%-H%M.%S+%Z')"
+          cp pas-backup-artifact/pas-backup.tar versioned/pas-backup-$timestamp.tar
+          echo "New state file is named pas-backup-$timestamp.tar"
+  - put: pas-backup
+    params:
+      file: versioned/pas-backup-*.tar

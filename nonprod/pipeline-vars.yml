@@ -1,4 +1,5 @@
 env_name: nonprod
+ops_manager_host: pcf.nonprod.azure.pcfref.com
 
 configuration:
   uri: git@github.com:noizwaves/pcfref-azure.git
