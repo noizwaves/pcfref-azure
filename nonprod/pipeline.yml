@@ -170,6 +170,12 @@ resources:
     <<: *s3-backups
     regexp: ((env_name))/pas/pas-backup-(.*).tar
 
+- name: director-backup
+  type: s3
+  source:
+    <<: *s3-backups
+    regexp: ((env_name))/director/director-backup-(.*).tar
+
 groups:
 - name: install
   jobs:
@@ -203,6 +209,7 @@ groups:
   jobs:
   - backup-ops-manager
   - backup-pas
+  - backup-director
 - name: delete
   jobs:
   - delete-foundation
@@ -964,3 +971,43 @@ jobs:
   - put: pas-backup
     params:
       file: versioned/pas-backup-*.tar
+
+- name: backup-director
+  serial: true
+  plan:
+  - <<: *get-platform-automation-tasks-only
+  - aggregate:
+    - get: bbr-tasks
+    - get: bbr-release
+  - task: extract-binary
+    file: bbr-tasks/tasks/extract-bbr-binary/task.yml
+  - task: bbr-backup-director
+    file: bbr-tasks/tasks/bbr-backup-director/task.yml
+    input_mapping:
+      bbr-pipeline-tasks-repo: bbr-tasks
+    params:
+      <<: *opsman_credentials
+    on_failure:
+      task: bbr-cleanup-director
+      file: bbr-tasks/tasks/bbr-cleanup-director/task.yml
+      params:
+        <<: *opsman_credentials
+  - task: add-version-to-artifact
+    image: platform-automation-image
+    config:
+      platform: linux
+      inputs:
+      - name: director-backup-artifact
+      outputs:
+      - name: versioned
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          timestamp="$(date '+%Y%m%d.%-H%M.%S+%Z')"
+          cp director-backup-artifact/director-backup.tar versioned/director-backup-$timestamp.tar
+          echo "New state file is named director-backup-$timestamp.tar"
+  - put: director-backup
+    params:
+      file: versioned/director-backup-*.tar
