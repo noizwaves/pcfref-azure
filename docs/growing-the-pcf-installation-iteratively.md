@@ -75,7 +75,7 @@ The installation grew in this way:
     - Tile configuration applied and deployed using pipeline in [this commit](https://github.com/noizwaves/pcfref-azure/commit/37be72a509c82048dfabb02fc9a1feb27689aeca)
 1. Add other (RabbitMQ, Redis) tiles to `nonprod`
 1. Enhance pipeline with job dependencies
-    - In (this commit)[https://github.com/noizwaves/pcfref-azure/commit/699f66fb6f6acbae4af3ce752ef787531e1795c3]
+    - In [this commit](https://github.com/noizwaves/pcfref-azure/commit/699f66fb6f6acbae4af3ce752ef787531e1795c3)
 1. Refactor pipeline to use anchors and aliases
-    - In (this commit)[https://github.com/noizwaves/pcfref-azure/commit/932b04ae467f17f9c60d537dc75c2914a1642d1b], and
-    - Also in (this commit)[https://github.com/noizwaves/pcfref-azure/commit/d292e9ab1ea1d48a10df6b3b9b48f582bfa7a1f1]
+    - In [this commit](https://github.com/noizwaves/pcfref-azure/commit/932b04ae467f17f9c60d537dc75c2914a1642d1b), and
+    - Also in [this commit](https://github.com/noizwaves/pcfref-azure/commit/d292e9ab1ea1d48a10df6b3b9b48f582bfa7a1f1)s
