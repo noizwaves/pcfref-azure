@@ -20,22 +20,24 @@ The installation grew in these high level steps:
 1. Manually triggered configuring of BOSH Director via a pipeline
 1. Manually triggered configuring of PAS via a pipeline
 1. Manually triggered fetching of products via a pipeline
+1. Add additional products following patterns
 1. Enhance pipelines with "passed" job dependencies and triggers
 
 ## Detailed History
 
 The installation grew in this way:
 
-1. Highly manual installation of `nonprod` using `terraform` CLI and Ops Manager web UI from a laptop
-    - only 1 CLI tool used
-    - local Terraform state
-    - no product configuration saved locally, only exists in the foundation
+1. Manual installation of `nonprod` using `terraform` CLI and Ops Manager web UI
     - Manual Terraform w/ Ops Manager following [the docs](https://docs.pivotal.io/pivotalcf/om/azure/prepare-env-terraform.html) ([commit](https://github.com/noizwaves/pcfref-azure/commit/71
     - Manual configuration of Ops Manager & BOSH Director following [the docs](https://docs.pivotal.io/pivotalcf/om/azure/config-terraform.html)
     - Manual configuration of PAS following [the docs](https://docs.pivotal.io/pivotalcf/customizing/configure-pas.html)
+    - only 1 CLI tool used, all other interation is web based
+    - local Terraform state
+    - no product configuration saved locally, only exists in the foundation
 1. Introduction of `om` CLI to obtain configuration `.yml` files
     - Ops Manager and BOSH Director configuration exported and added to source control ([commit](https://github.com/noizwaves/pcfref-azure/commit/71996baa748bb24453b2a1657cf2e8919bad863c))
     - PAS configuration exported and added to source control [the docs](https://docs.pivotal.io/pivotalcf/customizing/configure-pas.html) ([commit](https://github.com/noizwaves/pcfref-azure/commit/9577c3505d98960df52827abf2a067f4fbe3a848))
+    - obtain configuration, make edits locally, configure product, apply changes all using `om`
 1. Deployment of a Control Plane to enable automation
     - Started with [this commit](https://github.com/noizwaves/pcfref-azure/commit/cb09b18803b1749bcab2fda5643628386e7017d5)
     - Minio deployed as a blobstore in [this commit](https://github.com/noizwaves/pcfref-azure/commit/b00221a2d34744e5c83a9b9aec11f7b1cfd243ca)
