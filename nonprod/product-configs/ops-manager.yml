@@ -2,4 +2,4 @@ pivnet-api-token: ((pivnet_token))
 pivnet-file-glob: "ops-manager-azure-*.yml"
 pivnet-product-slug: ops-manager
 # product-version-regex: ^2\.5\..*$
-product-version: 2.5.0
+product-version: 2.5.4
