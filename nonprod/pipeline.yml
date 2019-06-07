@@ -69,7 +69,7 @@ resources:
   type: s3
   source:
     <<: *s3-products
-    regexp: ops-manager/OpsManager(.*)onAzure.yml
+    regexp: ops-manager/ops-manager-azure-(.*).yml
 
 - name: ops-manager-state-s3
   type: s3
