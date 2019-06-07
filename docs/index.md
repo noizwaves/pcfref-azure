@@ -37,4 +37,5 @@ This deployment represents a PCF deployment that:
 
 ## Articles
 
+- [Growing the PCF Installation Iteratively](./growing-the-pcf-installation-iteratively.md)
 - [Automatically rotate Let's Encrypt certificates](./lets-encrypt-certificates.md)
