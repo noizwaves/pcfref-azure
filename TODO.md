@@ -1,12 +1,10 @@
 ## Backlog
 
-- automate OM backups
-- backup and restore pipelines: https://github.com/pivotal-cf/bbr-pcf-pipeline-tasks/blob/master/examples/pas-pipeline.yml
+- Document growing pcfref-azure
 - Update nonprod to 2.5
 - Configure `ignore_paths` on configuration to control triggering of jobs
 - Perform backup explicitly before opsman upgrade?
 - Document Control Plane implementation
-- Document growing pcfref-azure
 - Document PCFRef Azure (rational, users)
 - Incorporate learnings from https://github.com/jseely/pivotal-azure-architecture-center/blob/master/reference-architecture/hub-and-spoke/pas.md
     - AZs vs ASs
