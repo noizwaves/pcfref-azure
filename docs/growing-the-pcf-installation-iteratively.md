@@ -10,9 +10,22 @@ The PCFRef Azure installation did not start out highly automated and modularly d
 Instead, it started out highly manual, and automation was introduced where appropriate.
 This article describes how PCFRef Azure grew by outlining key technical milestones along the way.
 
+## The High Level Steps
+
+The installation grew in these high level steps:
+
+1. Manual install following the "Installing PCF on Azure Using Terraform" documentation using Ops Manager web UI
+1. Use `om` CLI to manage (capture, update, apply) configurations and apply changes
+1. Deployment of Control Plane
+1. Manually triggered configuring of BOSH Director via a pipeline
+1. Manually triggered configuring of PAS via a pipeline
+1. Manually triggered fetching of products via a pipeline
+1. Enhance pipelines with "passed" job dependencies and triggers
+
 ## Detailed History
 
 The installation grew in this way:
+
 1. Highly manual installation of `nonprod` using `terraform` CLI and Ops Manager web UI from a laptop
     - only 1 CLI tool used
     - local Terraform state
