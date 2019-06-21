@@ -63,6 +63,7 @@ properties-configuration:
     handlers: []
   iaas_configuration:
     additional_cloud_properties: {}
+    availability_mode: availability_sets
     bosh_storage_account_name: yu17qa31zbg4wvx1x9gt
     client_id: ((client_id))
     client_secret: ((client_secret))
