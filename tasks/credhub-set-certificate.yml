@@ -16,6 +16,12 @@ run:
     cat /var/version && echo ""
     set -eux
 
+    # NOTE: The credhub cli does not ignore empty/null environment variables.
+    # https://github.com/cloudfoundry-incubator/credhub-cli/issues/68
+    if [ -z "$CREDHUB_CA_CERT" ]; then
+      unset CREDHUB_CA_CERT
+    fi
+
     credhub login
 
     credhub set -n ${NAME} -t certificate -r "$(cat certs/chain.pem)" -c "$(cat certs/cert.pem)" -p "$(cat certs/privkey.pem)"
