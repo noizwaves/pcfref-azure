@@ -2,9 +2,9 @@ network-assignment:
   network:
     name: infrastructure
   other_availability_zones:
-  - name: "null"
+  - name: Availability Sets
   singleton_availability_zone:
-    name: "null"
+    name: Availability Sets
 networks-configuration:
   icmp_checks_enabled: false
   networks:
@@ -16,7 +16,7 @@ networks-configuration:
       gateway: 10.0.8.1
       reserved_ip_ranges: 10.0.8.1-10.0.8.9
       availability_zone_names:
-      - "null"
+      - Availability Sets
   - name: pas
     subnets:
     - iaas_identifier: nonprod-virtual-network/nonprod-pas-subnet
@@ -25,7 +25,7 @@ networks-configuration:
       gateway: 10.0.0.1
       reserved_ip_ranges: 10.0.0.1-10.0.0.9
       availability_zone_names:
-      - "null"
+      - Availability Sets
   - name: services
     subnets:
     - iaas_identifier: nonprod-virtual-network/nonprod-services-subnet
@@ -34,7 +34,7 @@ networks-configuration:
       gateway: 10.0.4.1
       reserved_ip_ranges: 10.0.4.1-10.0.4.9
       availability_zone_names:
-      - "null"
+      - Availability Sets
 properties-configuration:
   director_configuration:
     allow_legacy_agents: true
