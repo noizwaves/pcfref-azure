@@ -30,8 +30,6 @@ product-properties:
     value: sys.nonprod.azure.pcfref.com
   .diego_brain.starting_container_count_maximum:
     value: 200
-  .doppler.message_drain_buffer_size:
-    value: 10000
   .ha_proxy.skip_cert_verify:
     value: true
   .mysql.cli_history:
@@ -80,8 +78,6 @@ product-properties:
     value: apps.internal
   .properties.cloud_controller_default_health_check_timeout:
     value: 60
-  .properties.cloud_controller_default_stack:
-    value: default
   .properties.cloud_controller_temporary_disable_deployments:
     value: false
   .properties.container_networking:
@@ -113,10 +109,6 @@ product-properties:
       provider: internal
   .properties.diego_log_timestamp_format:
     value: rfc3339
-  .properties.enable_cf_metric_name:
-    value: false
-  .properties.enable_log_cache:
-    value: true
   .properties.enable_smb_volume_driver:
     value: false
   .properties.enable_tls_to_internal_pxc:
@@ -277,8 +269,6 @@ product-properties:
   .router.request_timeout_in_seconds:
     value: 900
   .uaa.apps_manager_access_token_lifetime:
-    value: 1209600
-  .uaa.apps_manager_refresh_token_lifetime:
     value: 1209600
   .uaa.cf_cli_access_token_lifetime:
     value: 7200
