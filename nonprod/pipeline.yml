@@ -5,6 +5,12 @@ resource_types:
     repository: pivotalcf/pivnet-resource
     tag: latest-final
 
+- name: s3-latest
+  type: docker-image
+  source:
+    repository: concourse/s3-resource
+    tag: 1.0.3
+
 - name: credhub
   type: docker-image
   source:
@@ -17,12 +23,14 @@ x-resource-anchors:
     bucket: ((s3.buckets.pivnet_products))
     endpoint: ((s3.endpoint))
     secret_access_key: ((s3_secret_access_key))
+    disable_multipart: true
 
   s3-backups: &s3-backups
     access_key_id: ((s3.access_key_id))
     secret_access_key: ((s3_secret_access_key))
     endpoint: ((s3.endpoint))
     bucket: ((s3.buckets.backups))
+    disable_multipart: true
 
 resources:
 - name: terraform-image
@@ -40,13 +48,13 @@ resources:
     sort_by: semver
 
 - name: platform-automation-tasks
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: platform-automation/platform-automation-tasks-(.*).zip
 
 - name: platform-automation-image
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: platform-automation/platform-automation-image-(.*).tgz
@@ -66,78 +74,79 @@ resources:
     branch: v1.2.0
 
 - name: ops-manager-image
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: ops-manager/ops-manager-azure-(.*).yml
 
 - name: ops-manager-state-s3
-  type: s3
+  type: s3-latest
   source:
     access_key_id: ((s3.access_key_id))
     secret_access_key: ((s3_secret_access_key))
     endpoint: ((s3.endpoint))
     bucket: ((s3.buckets.state))
     regexp: nonprod/ops-manager/state-(.*).json
+    disable_multipart: true
     initial_path: nonprod/ops-manager/state-0.json
     initial_content_text: "{}"
 
 - name: pas-stemcell
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: pas-stemcell/bosh-stemcell-(.*).tgz
 
 - name: pas-product
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: pas/cf-(.*).pivotal
 
 - name: mysql-stemcell
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: mysql-stemcell/bosh-stemcell-(.*).tgz
 
 - name: mysql-product
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: mysql/pivotal-mysql-(.*).pivotal
 
 - name: rabbitmq-stemcell
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: rabbitmq-stemcell/bosh-stemcell-(.*).tgz
 
 - name: rabbitmq-product
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: rabbitmq/p-rabbitmq-(.*).pivotal
 
 - name: redis-stemcell
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: redis-stemcell/bosh-stemcell-(.*).tgz
 
 - name: redis-product
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: redis/p-redis-(.*).pivotal
 
 - name: healthwatch-stemcell
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: healthwatch-stemcell/bosh-stemcell-(.*).tgz
 
 - name: healthwatch-product
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-products
     regexp: healthwatch/p-healthwatch-(.*).pivotal
@@ -159,19 +168,19 @@ resources:
     skip_tls_validation: true
 
 - name: ops-manager-backup
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-backups
     regexp: ((env_name))/ops-manager/installation-(.*).zip
 
 - name: pas-backup
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-backups
     regexp: ((env_name))/pas/pas-backup-(.*).tar
 
 - name: director-backup
-  type: s3
+  type: s3-latest
   source:
     <<: *s3-backups
     regexp: ((env_name))/director/director-backup-(.*).tar
