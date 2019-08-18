@@ -77,7 +77,7 @@ resources:
     access_key_id: ((s3.access_key_id))
     secret_access_key: ((s3_secret_access_key))
     endpoint: ((s3.endpoint))
-    bucket: state
+    bucket: ((s3.buckets.state))
     regexp: nonprod/ops-manager/state-(.*).json
     initial_path: nonprod/ops-manager/state-0.json
     initial_content_text: "{}"

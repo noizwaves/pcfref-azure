@@ -11,6 +11,7 @@ s3:
   buckets:
     pivnet_products: products
     backups: backups
+    state: state
 
 credhub-server: https://plane.control.azure.pcfref.com:8844
 credhub-client: credhub_admin_client
