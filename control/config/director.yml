@@ -54,7 +54,7 @@ properties-configuration:
     handlers: []
   iaas_configuration:
     additional_cloud_properties: {}
-    bosh_storage_account_name: p5l0usjxtnf663leabtq
+    bosh_storage_account_name: ((bosh_storage_account_name))
     client_id: ((client_id))
     client_secret: ((client_secret))
     cloud_storage_type: managed_disks
