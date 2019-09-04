@@ -91,3 +91,11 @@ vmextensions-configuration:
   cloud_properties:
     security_group: control-plane-security-group
     load_balancer: control-lb
+- name: control-plane-uaa-lb-cloud-properties
+  cloud_properties:
+    security_group: control-uaa-security-group
+    load_balancer: control-uaa-lb
+- name: control-plane-credhub-lb-cloud-properties
+  cloud_properties:
+    security_group: control-credhub-security-group
+    load_balancer: control-credhub-lb

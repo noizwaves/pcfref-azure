@@ -85,6 +85,10 @@ resource "acme_certificate" "certificate" {
   subject_alternative_names = [
     "pcf.${var.env_name}.${var.dns_suffix}",
     "plane.${var.env_name}.${var.dns_suffix}",
+    "opsman.${var.env_name}.${var.dns_suffix}",
+    "concourse.${var.env_name}.${var.dns_suffix}",
+    "uaa.${var.env_name}.${var.dns_suffix}",
+    "credhub.${var.env_name}.${var.dns_suffix}",
   ]
 
   dns_challenge {

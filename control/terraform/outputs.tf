@@ -131,6 +131,14 @@ output "control_plane_domain" {
   value = "${module.control_plane.dns_name}"
 }
 
+output "control_plane_uaa_domain" {
+  value = "${module.control_plane.uaa_dns_name}"
+}
+
+output "control_plane_credhub_domain" {
+  value = "${module.control_plane.credhub_dns_name}"
+}
+
 output "control_plane_storage_account_name" {
   value = "${module.control_plane.storage_account_name}"
 }

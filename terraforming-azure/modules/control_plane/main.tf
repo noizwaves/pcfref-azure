@@ -1,5 +1,7 @@
 locals {
   name_prefix = "${var.env_name}-plane"
+  uaa_name_prefix = "${var.env_name}-uaa"
+  credhub_name_prefix = "${var.env_name}-credhub"
   web_ports   = [80, 443, 8443, 8844, 2222]
 }
 
@@ -13,11 +15,41 @@ resource "azurerm_dns_a_record" "plane" {
   records             = ["${azurerm_public_ip.plane.ip_address}"]
 }
 
+resource "azurerm_dns_a_record" "uaa" {
+  resource_group_name = "${var.resource_group_name}"
+  name                = "uaa"
+  zone_name           = "${var.dns_zone_name}"
+  ttl                 = "60"
+  records             = ["${azurerm_public_ip.uaa.ip_address}"]
+}
+
+resource "azurerm_dns_a_record" "credhub" {
+  resource_group_name = "${var.resource_group_name}"
+  name                = "credhub"
+  zone_name           = "${var.dns_zone_name}"
+  ttl                 = "60"
+  records             = ["${azurerm_public_ip.credhub.ip_address}"]
+}
+
 # Load Balancers
 
 resource "azurerm_public_ip" "plane" {
   resource_group_name = "${var.resource_group_name}"
   name                = "${local.name_prefix}-ip"
+  location            = "${var.location}"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_public_ip" "uaa" {
+  resource_group_name = "${var.resource_group_name}"
+  name                = "${local.uaa_name_prefix}-ip"
+  location            = "${var.location}"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_public_ip" "credhub" {
+  resource_group_name = "${var.resource_group_name}"
+  name                = "${local.credhub_name_prefix}-ip"
   location            = "${var.location}"
   allocation_method   = "Static"
 }
@@ -32,11 +64,44 @@ resource "azurerm_lb" "plane" {
     public_ip_address_id = "${azurerm_public_ip.plane.id}"
   }
 }
+resource "azurerm_lb" "uaa" {
+  resource_group_name = "${var.resource_group_name}"
+  name                = "${local.uaa_name_prefix}-lb"
+  location            = "${var.location}"
+
+  frontend_ip_configuration {
+    name                 = "${local.uaa_name_prefix}-ip"
+    public_ip_address_id = "${azurerm_public_ip.uaa.id}"
+  }
+}
+
+resource "azurerm_lb" "credhub" {
+  resource_group_name = "${var.resource_group_name}"
+  name                = "${local.credhub_name_prefix}-lb"
+  location            = "${var.location}"
+
+  frontend_ip_configuration {
+    name                 = "${local.credhub_name_prefix}-ip"
+    public_ip_address_id = "${azurerm_public_ip.credhub.id}"
+  }
+}
 
 resource "azurerm_lb_backend_address_pool" "plane" {
   resource_group_name = "${var.resource_group_name}"
   name                = "${local.name_prefix}-pool"
   loadbalancer_id     = "${azurerm_lb.plane.id}"
+}
+
+resource "azurerm_lb_backend_address_pool" "uaa" {
+  resource_group_name = "${var.resource_group_name}"
+  name                = "${local.uaa_name_prefix}-pool"
+  loadbalancer_id     = "${azurerm_lb.uaa.id}"
+}
+
+resource "azurerm_lb_backend_address_pool" "credhub" {
+  resource_group_name = "${var.resource_group_name}"
+  name                = "${local.credhub_name_prefix}-pool"
+  loadbalancer_id     = "${azurerm_lb.credhub.id}"
 }
 
 resource "azurerm_lb_probe" "plane" {
@@ -48,6 +113,32 @@ resource "azurerm_lb_probe" "plane" {
   protocol = "Tcp"
 
   loadbalancer_id     = "${azurerm_lb.plane.id}"
+  interval_in_seconds = 5
+  number_of_probes    = 2
+}
+
+resource "azurerm_lb_probe" "uaa" {
+  resource_group_name = "${var.resource_group_name}"
+  count               = "${length(local.web_ports)}"
+  name                = "${local.uaa_name_prefix}-${element(local.web_ports, count.index)}-probe"
+
+  port     = "${element(local.web_ports, count.index)}"
+  protocol = "Tcp"
+
+  loadbalancer_id     = "${azurerm_lb.uaa.id}"
+  interval_in_seconds = 5
+  number_of_probes    = 2
+}
+
+resource "azurerm_lb_probe" "credhub" {
+  resource_group_name = "${var.resource_group_name}"
+  count               = "${length(local.web_ports)}"
+  name                = "${local.credhub_name_prefix}-${element(local.web_ports, count.index)}-probe"
+
+  port     = "${element(local.web_ports, count.index)}"
+  protocol = "Tcp"
+
+  loadbalancer_id     = "${azurerm_lb.credhub.id}"
   interval_in_seconds = 5
   number_of_probes    = 2
 }
@@ -66,10 +157,50 @@ resource "azurerm_lb_rule" "plane" {
   probe_id                       = "${element(azurerm_lb_probe.plane.*.id, count.index)}"
 }
 
+resource "azurerm_lb_rule" "uaa" {
+  resource_group_name = "${var.resource_group_name}"
+  count               = "${length(local.web_ports)}"
+  name                = "${local.uaa_name_prefix}-${element(local.web_ports, count.index)}"
+
+  protocol                       = "Tcp"
+  loadbalancer_id                = "${azurerm_lb.uaa.id}"
+  frontend_port                  = "${element(local.web_ports, count.index)}"
+  backend_port                   = "${element(local.web_ports, count.index)}"
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.uaa.id}"
+  frontend_ip_configuration_name = "${azurerm_public_ip.uaa.name}"
+  probe_id                       = "${element(azurerm_lb_probe.uaa.*.id, count.index)}"
+}
+
+resource "azurerm_lb_rule" "credhub" {
+  resource_group_name = "${var.resource_group_name}"
+  count               = "${length(local.web_ports)}"
+  name                = "${local.credhub_name_prefix}-${element(local.web_ports, count.index)}"
+
+  protocol                       = "Tcp"
+  loadbalancer_id                = "${azurerm_lb.credhub.id}"
+  frontend_port                  = "${element(local.web_ports, count.index)}"
+  backend_port                   = "${element(local.web_ports, count.index)}"
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.credhub.id}"
+  frontend_ip_configuration_name = "${azurerm_public_ip.credhub.name}"
+  probe_id                       = "${element(azurerm_lb_probe.credhub.*.id, count.index)}"
+}
+
 # Firewall
 
 resource "azurerm_network_security_group" "plane" {
   name                = "${local.name_prefix}-security-group"
+  location            = "${var.location}"
+  resource_group_name = "${var.resource_group_name}"
+}
+
+resource "azurerm_network_security_group" "uaa" {
+  name                = "${local.uaa_name_prefix}-security-group"
+  location            = "${var.location}"
+  resource_group_name = "${var.resource_group_name}"
+}
+
+resource "azurerm_network_security_group" "credhub" {
+  name                = "${local.credhub_name_prefix}-security-group"
   location            = "${var.location}"
   resource_group_name = "${var.resource_group_name}"
 }
@@ -79,6 +210,36 @@ resource "azurerm_network_security_rule" "plane" {
   network_security_group_name = "${azurerm_network_security_group.plane.name}"
 
   name                       = "${local.name_prefix}-security-group-rule"
+  priority                   = 100
+  direction                  = "Inbound"
+  access                     = "Allow"
+  protocol                   = "Tcp"
+  source_port_range          = "*"
+  destination_port_ranges    = "${local.web_ports}"
+  source_address_prefix      = "*"
+  destination_address_prefix = "*"
+}
+
+resource "azurerm_network_security_rule" "uaa" {
+  resource_group_name = "${var.resource_group_name}"
+  network_security_group_name = "${azurerm_network_security_group.uaa.name}"
+
+  name                       = "${local.uaa_name_prefix}-security-group-rule"
+  priority                   = 100
+  direction                  = "Inbound"
+  access                     = "Allow"
+  protocol                   = "Tcp"
+  source_port_range          = "*"
+  destination_port_ranges    = "${local.web_ports}"
+  source_address_prefix      = "*"
+  destination_address_prefix = "*"
+}
+
+resource "azurerm_network_security_rule" "credhub" {
+  resource_group_name = "${var.resource_group_name}"
+  network_security_group_name = "${azurerm_network_security_group.credhub.name}"
+
+  name                       = "${local.credhub_name_prefix}-security-group-rule"
   priority                   = 100
   direction                  = "Inbound"
   access                     = "Allow"

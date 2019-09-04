@@ -1,0 +1,57 @@
+product-name: control-plane
+product-properties:
+  .properties.ca_cert:
+    value: ((ca-cert-pem))  # Let's Encrypt chain.pem
+  .properties.control_plane_database:
+    value: internal
+  .properties.credhub_endpoint:
+    value: credhub.control.azure.pcfref.com:8844
+  .properties.plane_endpoint:
+    value: plane.control.azure.pcfref.com
+  .properties.uaa_endpoint:
+    value: uaa.control.azure.pcfref.com:8443
+  .properties.tls:
+    value:
+      cert_pem: ((cert-pem))  # Let's Encrypt cert.pem
+      private_key_pem: ((private-key-pem))  # Let's Encrypt privkey.pem
+network-properties:
+  network:
+    name: control-plane
+  other_availability_zones:
+  - name: "null"
+  singleton_availability_zone:
+    name: "null"
+resource-config:
+  credhub:
+    instances: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+    additional_vm_extensions:
+      - control-plane-credhub-lb-cloud-properties
+  db:
+    instances: automatic
+    persistent_disk:
+      size_mb: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+  uaa:
+    instances: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+    additional_vm_extensions:
+      - control-plane-uaa-lb-cloud-properties
+  web:
+    instances: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+    additional_vm_extensions:
+      - control-plane-lb-cloud-properties
+  worker:
+    instances: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false

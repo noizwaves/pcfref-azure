@@ -22,6 +22,14 @@ output "dns_name" {
   value = "${azurerm_dns_a_record.plane.name}.${azurerm_dns_a_record.plane.zone_name}"
 }
 
+output "uaa_dns_name" {
+  value = "${azurerm_dns_a_record.uaa.name}.${azurerm_dns_a_record.uaa.zone_name}"
+}
+
+output "credhub_dns_name" {
+  value = "${azurerm_dns_a_record.credhub.name}.${azurerm_dns_a_record.credhub.zone_name}"
+}
+
 output "network_name" {
   value = "${azurerm_subnet.plane.name}"
 }

@@ -6,14 +6,9 @@
 
 ## Step X. Deploy Control Plane
 
-```
-bosh deploy control-plane-0.0.31-rc.1.yml -d control-plane
-    -o operations/azure-vm-extension.yml
-    -o operations/larger-worker-disk.yml
-    -o operations/use-lets-encrypt-certificates.yml
-    -l vars/control-plane-vars.yml
-    -l vars/lets-encrypt-secrets.yml
-```
+1. Download Control Plane tile.
+1. Download stemcell.
+1. Upload tile and stemcell.
 
 ## Step X. Deploy Minio
 
