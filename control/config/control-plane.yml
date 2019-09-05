@@ -1,7 +1,7 @@
 product-name: control-plane
 product-properties:
   .properties.ca_cert:
-    value: ((ca_cert_pem))  # Let's Encrypt chain.pem
+    value: ((ca_cert_pem))
   .properties.control_plane_database:
     value: internal
   .properties.credhub_endpoint:
@@ -12,8 +12,8 @@ product-properties:
     value: uaa.control.azure.pcfref.com:8443
   .properties.tls:
     value:
-      cert_pem: ((cert_pem))  # Let's Encrypt cert.pem
-      private_key_pem: ((private_key_pem))  # Let's Encrypt privkey.pem
+      cert_pem: ((cert_pem))
+      private_key_pem: ((private_key_pem))
 network-properties:
   network:
     name: control-plane
