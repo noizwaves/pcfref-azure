@@ -4,3 +4,7 @@ network_name: control-plane
 azs: ["null"]
 vm_type: Standard_F2s
 wildcard_domain: plane.control.azure.pcfref.com
+
+cert_pem: ((lets_encrypt_cert.certificate))
+private_key_pem: ((lets_encrypt_cert.private_key))
+ca_cert_pem: ((lets_encrypt_cert.ca))
