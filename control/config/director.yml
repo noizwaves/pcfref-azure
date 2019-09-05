@@ -55,19 +55,19 @@ properties-configuration:
   iaas_configuration:
     additional_cloud_properties: {}
     bosh_storage_account_name: ((bosh_storage_account_name))
-    client_id: ((client_id))
-    client_secret: ((client_secret))
+    client_id: ((azure_client_id))
+    client_secret: ((azure_client_secret))
     cloud_storage_type: managed_disks
     default_security_group: control-bosh-deployed-vms-security-group
     environment: AzureCloud
     guid: 77396a8df6d1fd48967e
     name: default
     resource_group_name: control
-    ssh_public_key: ((ssh_public_key))
-    ssh_private_key: ((ssh_private_key))
+    ssh_public_key: ((bosh_ssh.public_key))
+    ssh_private_key: ((bosh_ssh.private_key))
     storage_account_type: Premium_LRS
-    subscription_id: ((subscription_id))
-    tenant_id: ((tenant_id))
+    subscription_id: ((azure_subscription_id))
+    tenant_id: ((azure_tenant_id))
   security_configuration:
     generate_vm_passwords: true
     opsmanager_root_ca_trusted_certs: true

@@ -10,6 +10,6 @@ s3:
   buckets:
     pivnet_products: products
 
-credhub-server: https://plane.control.azure.pcfref.com:8844
+credhub-server: https://credhub.control.azure.pcfref.com:8844
 credhub-client: credhub_admin_client
 credhub-interpolation-prefix: /concourse/main/control
