@@ -5,12 +5,11 @@ resource_types:
     repository: cfcommunity/credhub-resource
     tag: v0.1.1
 
-x-resource-anchors:
-  s3-products: &s3-products
-    access_key_id: ((s3.access_key_id))
-    bucket: ((s3.buckets.pivnet_products))
-    endpoint: ((s3.endpoint))
-    secret_access_key: ((s3_secret_access_key))
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
 
 resources:
 - name: terraform-image
@@ -20,16 +19,20 @@ resources:
     tag: 0.11.14
 
 - name: platform-automation-tasks
-  type: s3
+  type: pivnet
   source:
-    <<: *s3-products
-    regexp: platform-automation/platform-automation-tasks-(.*).zip
+    api_token: ((pivnet_token))
+    product_slug: platform-automation
+    product_version: 3\.0\.(.*)
+    sort_by: semver
 
 - name: platform-automation-image
-  type: s3
+  type: pivnet
   source:
-    <<: *s3-products
-    regexp: platform-automation/platform-automation-image-(.*).tgz
+    api_token: ((pivnet_token))
+    product_slug: platform-automation
+    product_version: 3\.0\.(.*)
+    sort_by: semver
 
 - name: configuration
   type: git
@@ -45,13 +48,15 @@ resources:
     username: ((credhub-client))
     password: ((credhub-secret))
     path: /concourse/main/((env_name))/lets_encrypt_cert
-    skip_tls_validation: true
+    skip_tls_validation: true  # no ca_cert option :(
 
 groups:
 - name: install
   jobs:
   - pave-iaas
   - install-opsman
+  - configure-control-plane
+  - apply-product-changes
 
 x-job-anchors:
   credhub-interpolate-all: &credhub-interpolate-all
@@ -62,6 +67,7 @@ x-job-anchors:
       CREDHUB_CLIENT: ((credhub-client))
       CREDHUB_SECRET: ((credhub-secret))
       CREDHUB_SERVER: ((credhub-server))
+      CREDHUB_CA_CERT: ((lets_encrypt_cert.ca))
       PREFIX: ((credhub-interpolation-prefix))
       INTERPOLATION_PATHS: "((env_name))/vars"
       SKIP_MISSING: false
@@ -73,11 +79,13 @@ x-job-anchors:
   _get-platform-automation-image: &_get-platform-automation-image
     get: platform-automation-image
     params:
+      globs: ["platform-automation-image-*.tgz"]
       unpack: true
 
   _get-platform-automation-tasks: &_get-platform-automation-tasks
     get: platform-automation-tasks
     params:
+      globs: ["platform-automation-tasks-*.zip"]
       unpack: true
 
   get-platform-automation-resources: &get-platform-automation-resources
@@ -117,6 +125,7 @@ jobs:
       CREDHUB_CLIENT: ((credhub-client))
       CREDHUB_SECRET: ((credhub-secret))
       CREDHUB_SERVER: ((credhub-server))
+      CREDHUB_CA_CERT: ((lets_encrypt_cert.ca))
       NAME: /concourse/main/((env_name))/lets_encrypt_cert
 
 - name: install-opsman
@@ -157,3 +166,42 @@ jobs:
       env: configuration-with-secrets
     params:
       ENV_FILE: ((env_name))/vars/env.yml
+
+- name: configure-control-plane
+  serial: true
+  serial_groups: [ install ]
+  plan:
+  - <<: *get-platform-automation-resources
+  - aggregate:
+    - get: configuration
+    - get: lets-encrypt-cert
+  - <<: *credhub-interpolate-all
+  - task: configure
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/configure-product.yml
+    params:
+      CONFIG_FILE: ((env_name))/config/control-plane.yml
+      VARS_FILES: vars/((env_name))/vars/control-plane-vars.yml
+      ENV_FILE: ((env_name))/vars/env.yml
+    input_mapping:
+      config: configuration
+      env: configuration-with-secrets
+      vars: configuration-with-secrets
+
+- name: apply-product-changes
+  serial: true
+  serial_groups: [ install ]
+  plan:
+  - <<: *get-platform-automation-resources
+  - aggregate:
+    - get: configuration
+      passed:
+      - configure-control-plane
+  - <<: *credhub-interpolate-all
+  - task: apply-changes
+    image: platform-automation-image
+    file: platform-automation-tasks/tasks/apply-changes.yml
+    params:
+      ENV_FILE: ((env_name))/vars/env.yml
+    input_mapping:
+      env: configuration-with-secrets
