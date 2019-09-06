@@ -6,3 +6,5 @@ tenant_id: ((azure_tenant_id))  # terraform output tenant_id
 bosh_storage_account_name: 1brp9klnh6nyogswy2st  # terraform output bosh_root_storage_account
 ssh_private_key: ((ops_manager_ssh_key.private_key))  # terraform output ops_manager_ssh_private_key
 ssh_public_key: ((ops_manager_ssh_key.public_key))  # terraform output ops_manager_ssh_public_key
+
+trusted_certificates: ((lets_encrypt_cert.ca))  # Let's Encrypt chain.pem
