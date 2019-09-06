@@ -21,9 +21,9 @@
 
 ## Step X. Log into Control Plane Credhub
 
-1. `credhub login -s https://plane.control.azure.pcfref.com:8844 --ca-cert=plane.pem --client-name=credhub_admin_client --client-secret=$SECRET`, where:
-    1. `plane.pem` comes from BOSH Director Credhub `credhub get -n /p-bosh/control-plane/control-plane-ca` (`.certificate`)
-    1. `$SECRET` comes from BOSH Director Credhub `credhub get -n /p-bosh/control-plane/credhub_admin_client_password`
+1. `credhub login -s https://credhub.control.azure.pcfref.com:8844 --ca-cert=terraform/generated-certs/chain.pem --client-name=credhub_admin_client --client-secret=$SECRET`, where:
+    1. `chain.pem` comes from `./terraform/extract-certs.sh`
+    1. `$SECRET` comes from `om credentials -p control-plane -c .uaa.credhub_admin_client_credentials`
 
 ## Step X. Push pipelines
 

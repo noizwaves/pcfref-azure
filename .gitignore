@@ -1,11 +1,13 @@
 .envrc
 opsman.pem
+opsman.pub
 
 terraform.state
 .terraform/
 plan
 terraform.tfstate
 terraform.tfstate.backup
+generated-certs/
 
 credhub-secrets.yml
 pipeline-secrets.yml
